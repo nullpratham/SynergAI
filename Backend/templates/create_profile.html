@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create Profile</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+
+<style>
+
+.form-section{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.hidden{
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+<h2>SynergAI</h2>
+</div>
+
+
+<div class="hero">
+
+<div class="left">
+
+<h1>Create Your Profile</h1>
+
+<p>
+Tell us about yourself so we can match you with the right teammates.
+</p>
+
+</div>
+
+
+
+<div class="right">
+
+<div class="login-box">
+
+<!-- STEP 1 PROFILE FORM -->
+
+<form id="profileForm">
+
+<div class="form-section">
+
+<input type="text" name="name" placeholder="Name" required>
+
+<input type="text" name="university" placeholder="University" required>
+
+<input type="text" name="skills" placeholder="Skills (Python, ML, Web)" required>
+
+<input type="text" name="interests" placeholder="Interests (AI, Startups)" required>
+
+<input type="text" name="role" placeholder="Preferred Role (Frontend / Backend)" required>
+
+<input type="text" name="availability" placeholder="Availability (hours/week)" required>
+
+<button type="button" onclick="showAccountForm()">Save Profile</button>
+
+</div>
+
+</form>
+
+
+
+<!-- STEP 2 ACCOUNT FORM -->
+
+<form action="/save_account" method="POST" id="accountForm" class="hidden">
+
+<div class="form-section">
+
+<input type="hidden" name="name" id="hidden_name">
+<input type="hidden" name="university" id="hidden_university">
+<input type="hidden" name="skills" id="hidden_skills">
+<input type="hidden" name="interests" id="hidden_interests">
+<input type="hidden" name="role" id="hidden_role">
+<input type="hidden" name="availability" id="hidden_availability">
+
+<input type="email" name="email" placeholder="Email" required>
+
+<input type="password" name="password" placeholder="Password" required>
+
+<button type="submit">Create Account</button>
+
+</div>
+
+</form>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<canvas id="particles"></canvas>
+
+<script src="{{ url_for('static', filename='particles.js') }}"></script>
+
+
+
+<script>
+
+function showAccountForm(){
+
+let box = document.querySelector(".login-box")
+let form = document.getElementById("profileForm")
+
+/* start blur animation */
+
+box.classList.add("fade-out")
+
+setTimeout(()=>{
+
+document.getElementById("hidden_name").value = form.name.value
+document.getElementById("hidden_university").value = form.university.value
+document.getElementById("hidden_skills").value = form.skills.value
+document.getElementById("hidden_interests").value = form.interests.value
+document.getElementById("hidden_role").value = form.role.value
+document.getElementById("hidden_availability").value = form.availability.value
+
+form.style.display="none"
+
+document.getElementById("accountForm").classList.remove("hidden")
+
+box.classList.remove("fade-out")
+box.classList.add("fade-in")
+
+},400)
+
+}
+
+</script>
+</body>
+</html>

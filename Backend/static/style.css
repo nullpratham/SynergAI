@@ -1,0 +1,49 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg,#6C63FF,#48C6EF);
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: white;
+}
+
+.container {
+  margin-top: 50px;
+}
+
+.card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  width: 300px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 20px;
+  transition: 0.3s;
+  box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+}
+
+.card:hover {
+  transform: translateY(-10px);
+}
+
+button {
+  background: white;
+  color: #6C63FF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.1);
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  bac

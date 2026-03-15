@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>SynergAI Dashboard</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:linear-gradient(135deg,#4c6ef5,#5f9cff);
+color:white;
+height:100vh;
+overflow:hidden;
+}
+
+/* NAVBAR */
+
+.navbar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:20px 60px;
+}
+
+.logo{
+font-size:22px;
+font-weight:600;
+letter-spacing:1px;
+}
+
+.nav-links{
+display:flex;
+gap:40px;
+font-size:16px;
+}
+
+.nav-links a{
+text-decoration:none;
+color:white;
+transition:0.25s;
+}
+
+.nav-links a:hover{
+transform:scale(1.15);
+text-shadow:0px 0px 12px rgba(255,255,255,0.8);
+}
+
+.right{
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.logout{
+background:white;
+color:black;
+border:none;
+padding:8px 16px;
+border-radius:20px;
+cursor:pointer;
+}
+
+/* MAIN DASHBOARD LAYOUT */
+
+.main{
+display:flex;
+align-items:center;
+justify-content:space-between;
+height:80vh;
+padding:0 120px;
+}
+
+/* LEFT TEXT */
+
+.hero-text{
+max-width:400px;
+}
+
+.hero-text h1{
+font-size:80px;
+line-height:85px;
+letter-spacing:4px;
+text-shadow:0px 0px 25px rgba(255,255,255,0.3);
+}
+
+.hero-text p{
+margin-top:10px;
+font-size:18px;
+opacity:0.85;
+}
+
+/* CARD SECTION */
+
+.cards{
+display:flex;
+flex-direction:column;
+gap:30px;
+}
+
+/* CREDIT CARD STYLE */
+
+.match-card{
+width:300px;
+background:white;
+color:black;
+padding:25px;
+border-radius:18px;
+box-shadow:0px 20px 40px rgba(0,0,0,0.2);
+transition:0.3s;
+}
+
+/* floating hover */
+
+.match-card:hover{
+transform:translateY(-8px) scale(1.03);
+box-shadow:0px 30px 60px rgba(0,0,0,0.25);
+}
+
+/* card text */
+
+.match-card h3{
+margin:0;
+font-size:22px;
+}
+
+.skills{
+margin-top:8px;
+font-size:14px;
+color:#555;
+}
+
+.match{
+margin-top:12px;
+font-weight:bold;
+color:#4c6ef5;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+SynergAI
+</div>
+
+
+<div class="nav-links">
+
+<a href="#">Discover</a>
+<a href="#">Projects</a>
+<a href="#">Teams</a>
+<a href="#">Messages</a>
+
+</div>
+
+
+<div class="right">
+
+<span>👤</span>
+
+<button class="logout" onclick="location.href='/'">
+Logout
+</button>
+
+</div>
+
+</div>
+
+
+<!-- MAIN CONTENT -->
+
+<div class="main">
+
+
+<!-- LEFT TEXT -->
+
+<div class="hero-text">
+
+<h1>
+POTENTIAL<br>
+TEAMMATES
+</h1>
+
+<p>
+Students compatible with your skills appear here.
+Invite them to collaborate on projects.
+</p>
+
+</div>
+
+
+<!-- MATCH CARDS -->
+
+<div class="cards">
+
+<div class="match-card">
+
+<h3>Alex Sharma</h3>
+
+<div class="skills">
+Python • Machine Learning • Data
+</div>
+
+<div class="match">
+92% Match
+</div>
+
+</div>
+
+
+<div class="match-card">
+
+<h3>Riya Gupta</h3>
+
+<div class="skills">
+React • UI Design • Frontend
+</div>
+
+<div class="match">
+88% Match
+</div>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+</body>
+</html>

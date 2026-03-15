@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>SynergAI</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+  <h2>SynergAI</h2>
+  <button onclick="scrollToLogin()">Login</button>
+</div>
+
+
+
+<!-- HERO SECTION -->
+
+<div class="hero">
+
+<!-- LEFT SIDE -->
+
+<div class="left">
+
+<h1>
+BUILD BETTER <br>
+TEAMS <br>
+TOGETHER
+</h1>
+
+<p>
+SynergAI helps students find compatible teammates
+for academic projects using AI based matching.
+</p>
+
+<button class="btn1" onclick="location.href='/create_profile'">
+Create Profile
+</button>
+
+<button class="btn2">
+Explore Matches
+</button>
+
+</div>
+
+
+
+<!-- RIGHT SIDE LOGIN -->
+
+<div class="right">
+
+<div class="login-box" id="loginBox">
+
+<h2>Login</h2>
+
+<form action="/login" method="POST">
+
+<input type="text" name="email" placeholder="Email" required>
+
+<input type="password" name="password" placeholder="Password" required>
+
+<button type="submit">Login</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- PARTICLES BACKGROUND -->
+
+<canvas id="particles"></canvas>
+
+
+
+<!-- JS FILES -->
+
+<script src="{{ url_for('static', filename='particles.js') }}"></script>
+<script src="{{ url_for('static', filename='cursor.js') }}"></script>
+<script src="{{ url_for('static', filename='scroll.js') }}"></script>
+
+
+
+<!-- SMALL HELPER SCRIPT -->
+
+<script>
+
+function scrollToLogin(){
+    document.getElementById("loginBox").scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Users | SynergAI</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:40px;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+background:#1e293b;
+}
+
+th,td{
+padding:12px;
+border:1px solid #334155;
+text-align:left;
+}
+
+th{
+background:#334155;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Registered Users</h1>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>University</th>
+<th>Skills</th>
+<th>Interests</th>
+<th>Role</th>
+<th>Availability</th>
+</tr>
+
+{% for user in users %}
+
+<tr>
+<td>{{user[0]}}</td>
+<td>{{user[1]}}</td>
+<td>{{user[2]}}</td>
+<td>{{user[3]}}</td>
+<td>{{user[4]}}</td>
+<td>{{user[5]}}</td>
+<td>{{user[6]}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>
