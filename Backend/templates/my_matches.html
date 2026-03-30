@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Matches | SynergAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <style>
+        .matches-container {
+            padding-top: 8rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .matches-header {
+            margin-bottom: 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .matches-header h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            background: linear-gradient(to bottom right, #fff, #64748b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-5px);
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            padding-bottom: 5rem;
+        }
+
+        .match-card-static {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 2rem;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .match-card-static:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .match-card-static h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .match-card-static .role {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .match-status-tag {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 0.6rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Ambient Background */
+        .orb {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(80px);
+        }
+        .orb-1 { top: -10%; left: -10%; }
+        .orb-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h2 onclick="location.href='/dashboard'" style="cursor:pointer">SynergAI</h2>
+        <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <a href="/dashboard" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">Explorer</a>
+            <a href="/logout" style="color: #f87171; text-decoration: none; font-weight: 600;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="matches-container">
+        <div class="matches-header">
+            <div>
+                <p style="color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.2rem; margin-bottom: 1rem;">Network</p>
+                <h1>ACCEPTED<br>CONNECTIONS</h1>
+            </div>
+            <a href="/dashboard" class="back-btn">
+                <span>←</span> Back to Explorer
+            </a>
+        </div>
+
+        <div class="matches-grid">
+            {% if matches %}
+                {% for m in matches %}
+                <div class="match-card-static">
+                    <div class="match-status-tag">✓ CONNECTED</div>
+                    <h3>{{ m.name }}</h3>
+                    <div class="role">{{ m.role }}</div>
+                    
+                    <div style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+                        {{ m.university or "SynergAI Community Member" }}
+                    </div>
+
+                    <div class="skills-container">
+                        {% if m.skills %}
+                            {% for skill in m.skills.split(',') %}
+                                <span class="skill-tag" style="background: rgba(255,255,255,0.03); color: #fff; border-color: rgba(255,255,255,0.1);">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <button class="start-match-btn" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 0.9rem; background: rgba(255,255,255,0.05); box-shadow: none;">Message Teammate</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 5rem; background: rgba(255,255,255,0.02); border-radius: 2rem; border: 1px dashed var(--glass-border);">
+                    <h2 style="color: var(--text-muted); margin-bottom: 1rem;">No connections found</h2>
+                    <p style="color: var(--text-muted);">Start inviting potential teammates from the Explorer!</p>
+                    <a href="/dashboard" class="start-match-btn" style="display: inline-block; margin-top: 2rem; text-decoration: none;">Go to Explorer</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</body>
+</html>

@@ -12,6 +12,7 @@ window.addEventListener("mousemove",(e)=>{
 });
 
 let particles = [];
+let burstParticles = []; // For the 'whoosh' effect
 
 for(let i=0;i<100;i++){
   particles.push({
@@ -99,7 +100,50 @@ function animate(){
     }
   }
 
+  // Burst particles (whoosh)
+  for (let i = burstParticles.length - 1; i >= 0; i--) {
+    let p = burstParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= 0.02;
+    
+    if (p.alpha <= 0) {
+      burstParticles.splice(i, 1);
+      continue;
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = p.color || "#34d399";
+    ctx.globalAlpha = p.alpha;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = p.color || "#34d399";
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+    ctx.shadowBlur = 0;
+  }
+
   requestAnimationFrame(animate);
 }
+
+function triggerWhoosh(x, y, color = "#34d399") {
+  for (let i = 0; i < 50; i++) {
+    let angle = Math.random() * Math.PI * 2;
+    let speed = Math.random() * 8 + 2;
+    burstParticles.push({
+      x: x,
+      y: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2, // Slight upward bias
+      size: Math.random() * 4 + 1,
+      alpha: 1,
+      decay: Math.random() * 0.02 + 0.01,
+      color: color
+    });
+  }
+}
+
+// Make globally accessible
+window.triggerWhoosh = triggerWhoosh;
 
 animate();

@@ -1,242 +1,1517 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SynergAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <style>
+        .dashboard-container {
+            padding-top: 8rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
 
-<title>SynergAI Dashboard</title>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
 
-<style>
+        .dashboard-header h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(to bottom right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-body{
-margin:0;
-font-family:Arial, Helvetica, sans-serif;
-background:linear-gradient(135deg,#4c6ef5,#5f9cff);
-color:white;
-height:100vh;
-overflow:hidden;
-}
+        .dashboard-grid {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            padding-bottom: 2rem;
+            perspective: 1200px;
+        }
 
-/* NAVBAR */
+        .match-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 2rem;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            width: 350px;
+            transform-style: preserve-3d;
+            animation: float3d 6s ease-in-out infinite;
+        }
 
-.navbar{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:20px 60px;
-}
+        .match-card:nth-child(2) {
+            animation-delay: -3s;
+        }
 
-.logo{
-font-size:22px;
-font-weight:600;
-letter-spacing:1px;
-}
+        @keyframes float3d {
+            0% { transform: translateY(0px) rotateX(4deg) rotateY(-4deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3); }
+            50% { transform: translateY(-20px) rotateX(-4deg) rotateY(4deg); box-shadow: 0 35px 50px -15px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2); }
+            100% { transform: translateY(0px) rotateX(4deg) rotateY(-4deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3); }
+        }
 
-.nav-links{
-display:flex;
-gap:40px;
-font-size:16px;
-}
+        .match-card:hover {
+            animation-play-state: paused;
+            transform: translateY(-25px) scale(1.05) rotateX(8deg) rotateY(-8deg) !important;
+            box-shadow: 0 45px 80px -15px rgba(0, 0, 0, 0.5), 0 0 50px rgba(99, 102, 241, 0.5) !important;
+            border-color: var(--primary);
+        }
 
-.nav-links a{
-text-decoration:none;
-color:white;
-transition:0.25s;
-}
+        /* ── Scanning overlay on cards ── */
+        .match-card .scan-line {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #818cf8, #c084fc, transparent);
+            box-shadow: 0 0 20px #818cf8, 0 0 60px rgba(129, 140, 248, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
 
-.nav-links a:hover{
-transform:scale(1.15);
-text-shadow:0px 0px 12px rgba(255,255,255,0.8);
-}
+        .match-card.scanning .scan-line {
+            opacity: 1;
+            animation: scanDown 1.2s ease-in-out infinite;
+        }
 
-.right{
-display:flex;
-align-items:center;
-gap:20px;
-}
+        @keyframes scanDown {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
 
-.logout{
-background:white;
-color:black;
-border:none;
-padding:8px 16px;
-border-radius:20px;
-cursor:pointer;
-}
+        .match-card.scanning {
+            border-color: rgba(129, 140, 248, 0.4);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+        }
 
-/* MAIN DASHBOARD LAYOUT */
+        /* ── Card morphing ── */
+        .match-card.morphing {
+            animation: cardMorph 0.7s ease-in-out forwards;
+        }
 
-.main{
-display:flex;
-align-items:center;
-justify-content:space-between;
-height:80vh;
-padding:0 120px;
-}
+        @keyframes cardMorph {
+            0%   { opacity: 1; transform: scale(1) rotateY(0deg); filter: blur(0); }
+            40%  { opacity: 0; transform: scale(0.9) rotateY(90deg); filter: blur(8px); }
+            60%  { opacity: 0; transform: scale(0.9) rotateY(-90deg); filter: blur(8px); }
+            100% { opacity: 1; transform: scale(1) rotateY(0deg); filter: blur(0); }
+        }
 
-/* LEFT TEXT */
+        .match-card.matched {
+            border-color: rgba(52, 211, 153, 0.4);
+            animation: float3dMatched 6s ease-in-out infinite;
+        }
 
-.hero-text{
-max-width:400px;
-}
+        .match-card.matched:nth-child(2) {
+            animation-delay: -3s;
+        }
 
-.hero-text h1{
-font-size:80px;
-line-height:85px;
-letter-spacing:4px;
-text-shadow:0px 0px 25px rgba(255,255,255,0.3);
-}
+        @keyframes float3dMatched {
+            0% { transform: translateY(0px) rotateX(3deg) rotateY(-3deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3), 0 0 15px rgba(52, 211, 153, 0.15); }
+            50% { transform: translateY(-20px) rotateX(-3deg) rotateY(3deg); box-shadow: 0 35px 50px -15px rgba(0, 0, 0, 0.4), 0 0 25px rgba(52, 211, 153, 0.25); }
+            100% { transform: translateY(0px) rotateX(3deg) rotateY(-3deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3), 0 0 15px rgba(52, 211, 153, 0.15); }
+        }
 
-.hero-text p{
-margin-top:10px;
-font-size:18px;
-opacity:0.85;
-}
+        .match-score {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.2rem;
+            transition: all 0.4s ease;
+        }
 
-/* CARD SECTION */
+        .matched .match-score {
+            color: #34d399;
+        }
 
-.cards{
-display:flex;
-flex-direction:column;
-gap:30px;
-}
+        .match-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
 
-/* CREDIT CARD STYLE */
+        .match-card .role {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            font-weight: 600;
+        }
 
-.match-card{
-width:300px;
-background:white;
-color:black;
-padding:25px;
-border-radius:18px;
-box-shadow:0px 20px 40px rgba(0,0,0,0.2);
-transition:0.3s;
-}
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
 
-/* floating hover */
+        .skill-tag {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.4s ease;
+        }
 
-.match-card:hover{
-transform:translateY(-8px) scale(1.03);
-box-shadow:0px 30px 60px rgba(0,0,0,0.25);
-}
+        .matched .skill-tag {
+            background: rgba(52, 211, 153, 0.1);
+            color: #6ee7b7;
+            border-color: rgba(52, 211, 153, 0.2);
+        }
 
-/* card text */
+        /* ── Start Matching Button ── */
+        .match-btn-container {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 4rem;
+        }
 
-.match-card h3{
-margin:0;
-font-size:22px;
-}
+        .start-match-btn {
+            padding: 1.2rem 3.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05rem;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 25px rgba(99, 102, 241, 0.4);
+        }
 
-.skills{
-margin-top:8px;
-font-size:14px;
-color:#555;
-}
+        .start-match-btn:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 8px 40px rgba(99, 102, 241, 0.6);
+        }
 
-.match{
-margin-top:12px;
-font-weight:bold;
-color:#4c6ef5;
-}
+        .start-match-btn:active {
+            transform: scale(0.97);
+        }
 
-</style>
+        /* Shimmer effect on button */
+        .start-match-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
 
+        @keyframes btnShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .start-match-btn.loading {
+            pointer-events: none;
+            width: 200px;
+            border-radius: 100px;
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .start-match-btn.loading::before {
+            display: none;
+        }
+
+        /* Pulsing ring around button when loading */
+        .start-match-btn.loading::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 100px;
+            border: 2px solid transparent;
+            border-top-color: #818cf8;
+            border-right-color: #c084fc;
+            animation: spinRing 1s linear infinite;
+        }
+
+        @keyframes spinRing {
+            to { transform: rotate(360deg); }
+        }
+
+        .start-match-btn.done {
+            background: linear-gradient(135deg, #059669, #34d399);
+            pointer-events: none;
+            box-shadow: 0 4px 25px rgba(52, 211, 153, 0.4);
+        }
+
+        /* ── Status text ── */
+        .status-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            min-height: 1.5rem;
+            transition: all 0.4s ease;
+        }
+
+        /* Ambient Orbs */
+        .orb {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        .orb-1 { top: 10%; right: 5%; animation: float 15s infinite; }
+        .orb-2 { bottom: 10%; left: 5%; animation: float 18s infinite reverse; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 40px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* ── Profile Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .profile-modal {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            width: 850px;
+            height: 550px;
+            border-radius: 2rem;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .profile-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Sidebar Tabs */
+        .modal-sidebar {
+            width: 240px;
+            background: rgba(255, 255, 255, 0.03);
+            border-right: 1px solid var(--glass-border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .modal-sidebar h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            padding-left: 1rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 1rem 1.2rem;
+            border-radius: 1rem;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Modal Content */
+        .modal-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: paneFadeIn 0.4s ease forwards;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes paneFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            background: rgba(248, 113, 113, 0.15);
+            border-color: #f87171;
+            color: #f87171;
+            transform: rotate(90deg);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        .info-item span {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .btn-profile {
+            padding: 0.8rem 1.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            text-decoration: none;
+            border: 1px solid var(--glass-border);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative; /* For notification dot */
+        }
+
+        .btn-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background: #fbbf24; /* Yellow */
+            border-radius: 50%;
+            border: 2px solid #0f172a;
+            display: none; /* Hidden by default */
+            animation: pulse-yellow 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes pulse-yellow {
+            0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+
+        /* ── Expanded Card Overlay ── */
+        .expanded-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .expanded-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .expanded-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            width: 700px;
+            max-height: 85vh;
+            border-radius: 2.5rem;
+            padding: 3.5rem;
+            position: relative;
+            box-shadow: 0 100px 150px rgba(0, 0, 0, 0.7);
+            transform: translateY(40px) scale(0.9);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow-y: auto;
+        }
+
+        .expanded-overlay.active .expanded-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .expanded-card h2 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .expanded-card .bio {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin: 2rem 0;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .btn-reject {
+            flex: 1;
+            padding: 1.2rem;
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-reject:hover {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: #f87171;
+            color: #f87171;
+        }
+
+        .btn-accept {
+            flex: 2;
+            padding: 1.2rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s;
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
+        }
+
+        /* ── Toast Notification ── */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 100px;
+            font-weight: 700;
+            z-index: 4000;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .toast.active {
+            bottom: 40px;
+        }
+
+        /* ── My Matches List ── */
+        .match-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .match-item:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .match-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        @keyframes counter-revolve {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(-360deg); }
+        }
+
+        .btn-invite-card {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-invite-card:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-invite-card.sent {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+            pointer-events: none;
+        }
+
+        /* ── Expanded Card Overlay ── */
+        .expanded-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .expanded-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .expanded-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            width: 700px;
+            max-height: 85vh;
+            border-radius: 2.5rem;
+            padding: 3.5rem;
+            position: relative;
+            box-shadow: 0 100px 150px rgba(0, 0, 0, 0.7);
+            transform: translateY(40px) scale(0.9);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow-y: auto;
+        }
+
+        .expanded-overlay.active .expanded-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .expanded-card h2 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .expanded-card .bio {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin: 2rem 0;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .btn-reject {
+            flex: 1;
+            padding: 1.2rem;
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-reject:hover {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: #f87171;
+            color: #f87171;
+        }
+
+        .btn-accept {
+            flex: 2;
+            padding: 1.2rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s;
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
+        }
+
+        /* ── Chat Overlay ── */
+        .chat-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            z-index: 3500;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .chat-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .chat-box {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            width: 600px;
+            height: 70vh;
+            border-radius: 2rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .chat-overlay.active .chat-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .chat-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .message-sent {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.5rem;
+        }
+
+        .message-received {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        .chat-input-area {
+            padding: 1.2rem 2rem;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 1rem 1.5rem;
+            color: white;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-send {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+    </style>
 </head>
-
 <body>
+    <nav class="navbar">
+        <h2>SynergAI</h2>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button class="btn-profile" onclick="toggleProfileModal(true)">
+                Profile
+                <div class="notification-dot" id="profileDot"></div>
+            </button>
+            <a href="/logout" style="background: rgba(248, 113, 113, 0.05); padding: 0.8rem 1.5rem; border-radius: 1rem; color: #f87171; text-decoration: none; border: 1px solid rgba(248, 113, 113, 0.2); font-weight: 600; font-size: 0.95rem; transition: all 0.3s;">Logout</a>
+        </div>
+    </nav>
 
+    <!-- Profile Modal Overlay -->
+    <div class="modal-overlay" id="profileOverlay">
+        <div class="profile-modal">
+            <button class="close-modal" onclick="toggleProfileModal(false)">&times;</button>
+            
+            <div class="modal-sidebar">
+                <h3>Settings</h3>
+                <button class="tab-btn active" onclick="switchTab('info')">
+                    👤 My Info
+                </button>
+                <button class="tab-btn" onclick="switchTab('matches')">
+                    🤝 My Matches
+                </button>
+                <button class="tab-btn" onclick="switchTab('invites')">
+                    📥 Pending Invites <span id="inviteCountBadge" style="background:#fbbf24; color:#000; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px; display:none;">0</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('security')">
+                    🔒 Security
+                </button>
+                <button class="tab-btn" onclick="switchTab('activity')">
+                    📊 Activity
+                </button>
+            </div>
 
-<!-- NAVBAR -->
+            <div class="modal-content">
+                <!-- Info Tab -->
+                <div class="tab-pane active" id="tab-info">
+                    <h2>Personal Info</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Full Name</label>
+                            <span>{{ user.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>University</label>
+                            <span>{{ user.university or 'Not set' }}</span>
+                        </div>
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Email Address</label>
+                            <span>{{ user.email }}</span>
+                        </div>
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Current Role</label>
+                            <span>{{ user.role or 'Student' }}</span>
+                        </div>
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Core Skills</label>
+                            <div class="skills-container" style="margin-top: 0.5rem;">
+                                {% if user.skills %}
+                                    {% for skill in user.skills.split(',') %}
+                                        <span class="skill-tag" style="background: rgba(255,255,255,0.05); color: #fff;">{{ skill.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.9rem;">No skills listed.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<div class="navbar">
+                <!-- My Matches Tab -->
+                <div class="tab-pane" id="tab-matches">
+                    <h2>Teammates</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Connections who have joined your network.</p>
+                    <div id="acceptedMatchesList">
+                        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No teammates yet. Search candidates in the dashboard!
+                        </div>
+                    </div>
+                </div>
 
-<div class="logo">
-SynergAI
-</div>
+                <!-- Invites Tab -->
+                <div class="tab-pane" id="tab-invites">
+                    <h2>Pending Invites</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Users who have invited you to join their team.</p>
+                    <div id="inboundInvitesList">
+                        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No pending invites.
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Security Tab -->
+                <div class="tab-pane" id="tab-security">
+                    <h2>Security Settings</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="info-item">
+                            <label>Current Password</label>
+                            <input type="password" placeholder="••••••••" style="background: transparent; border: none; color: white; width: 100%; outline: none;" value="password123" readonly>
+                        </div>
+                        <button class="start-match-btn" style="width: fit-content; padding: 0.8rem 2rem; font-size: 0.9rem;">Change Password</button>
+                        
+                        <div style="margin-top: 2rem; padding: 1.5rem; border-radius: 1rem; border: 1px dashed rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05);">
+                            <h4 style="color: #f87171; margin-bottom: 0.5rem;">Danger Zone</h4>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Once you delete your account, there is no going back. Please be certain.</p>
+                            <button style="background: transparent; border: 1px solid #f87171; color: #f87171; padding: 0.6rem 1.2rem; border-radius: 0.8rem; cursor: pointer;">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
 
-<div class="nav-links">
+                <!-- Activity Tab -->
+                <div class="tab-pane" id="tab-activity">
+                    <h2>Recent Activity</h2>
+                    <p style="color: var(--text-muted);">Logging match requests and team invites...</p>
+                    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="padding: 1rem; border-radius: 1rem; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600;">Match Algorithm Run</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Successfully computed 2 deep matches</div>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">2m ago</div>
+                        </div>
+                        <div style="padding: 1rem; border-radius: 1rem; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600;">Profile Updated</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Added 'Machine Learning' to skills</div>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">1h ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<a href="#">Discover</a>
-<a href="#">Projects</a>
-<a href="#">Teams</a>
-<a href="#">Messages</a>
+    <!-- Expanded Profile Overlay -->
+    <div class="expanded-overlay" id="expandedOverlay">
+        <div class="expanded-card" id="expandedCard">
+            <button class="close-modal" style="top: 2rem; right: 2rem;" onclick="closeExpandedCard()">&times;</button>
+            <div id="expandedContent">
+                <h2 id="expName">User Name</h2>
+                <div class="role" id="expRole" style="color: #818cf8; font-weight: 700; letter-spacing: 0.1rem;">ROLE NAME</div>
+                
+                <div class="bio">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p style="margin-top: 1rem;">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
 
-</div>
+                <div class="info-grid" style="margin-top: 2rem;">
+                    <div class="info-item">
+                        <label>Availability</label>
+                        <span id="expAvail">10-15 hrs/week</span>
+                    </div>
+                    <div class="info-item">
+                        <label>University</label>
+                        <span id="expUni">Example University</span>
+                    </div>
+                </div>
 
+                <div style="margin-top: 2rem;">
+                    <label style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.8rem;">Top Skills</label>
+                    <div class="skills-container" id="expSkills"></div>
+                </div>
 
-<div class="right">
+                <div class="action-buttons">
+                    <button class="btn-reject" onclick="rejectMatch()">Reject</button>
+                    <button class="btn-accept" id="btnAccept" onclick="acceptMatch()">Invite Teammate</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<span>👤</span>
+    <!-- Chat Overlay -->
+    <div class="chat-overlay" id="chatOverlay">
+        <div class="chat-box">
+            <div class="chat-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="match-avatar" id="chatAvatar" style="width: 40px; height: 40px; font-size: 1rem; margin-bottom: 0;">?</div>
+                    <div>
+                        <h3 id="chatName" style="margin: 0; font-size: 1.2rem;">User Name</h3>
+                        <span style="font-size: 0.8rem; color: #10b981;">● Teammate</span>
+                    </div>
+                </div>
+                <button class="close-modal" style="position: static; font-size:1.5rem; width:35px; height:35px;" onclick="closeChat()">&times;</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages populate here -->
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInputMessage" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
 
-<button class="logout" onclick="location.href='/'">
-Logout
-</button>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>POTENTIAL<br>TEAMMATES</h1>
+            <p style="color: var(--text-muted); max-width: 350px;">Students compatible with your skills appear here. Hit "Start Matching" to find your ideal teammates.</p>
+        </div>
 
-</div>
+        <div class="dashboard-grid" id="cardGrid">
+            <div class="match-card" id="card1" onclick="openExpandedCard(0)">
+                <div class="scan-line"></div>
+                <div class="match-score" id="score1">95% Match</div>
+                <h3 id="name1">Stephen (Example)</h3>
+                <div class="role" id="role1">UI/UX Designer</div>
+                <div class="skills-container" id="skills1"></div>
+            </div>
 
-</div>
+            <div class="match-card" id="card2" onclick="openExpandedCard(1)">
+                <div class="scan-line"></div>
+                <div class="match-score" id="score2">88% Match</div>
+                <h3 id="name2">Alex (Example)</h3>
+                <div class="role" id="role2">Backend Developer</div>
+                <div class="skills-container" id="skills2"></div>
+            </div>
+        </div>
 
+        <!-- Start Matching Button -->
+        <div class="match-btn-container">
+            <button class="start-match-btn" id="startMatchBtn" onclick="startMatching()">
+                ⚡ Start Matching
+            </button>
+        </div>
+        <div class="status-text" id="statusText"></div>
+    </div>
 
-<!-- MAIN CONTENT -->
+    <!-- Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
 
-<div class="main">
+    <script>
+    let currentMatches = []; // Holds the 2 currently visible matches
+    let matchPool = [];      // Holds extra matches from backend
+    let acceptedMatches = []; 
+    let activeCardIndex = null;
 
+    async function startMatching() {
+        const btn = document.getElementById('startMatchBtn');
+        const status = document.getElementById('statusText');
+        const card1 = document.getElementById('card1');
+        const card2 = document.getElementById('card2');
 
-<!-- LEFT TEXT -->
+        btn.classList.add('loading');
+        btn.textContent = 'Matching...';
 
-<div class="hero-text">
+        status.textContent = 'Analyzing your skills & interests...';
+        card1.classList.add('scanning');
 
-<h1>
-POTENTIAL<br>
-TEAMMATES
-</h1>
+        await sleep(600);
+        card2.classList.add('scanning');
+        status.textContent = 'Searching compatible teammates...';
 
-<p>
-Students compatible with your skills appear here.
-Invite them to collaborate on projects.
-</p>
+        let matchData;
+        try {
+            const res = await fetch('/api/matches');
+            matchData = await res.json();
+            
+            // In a real app, we'd fetch more than 2, but for this demo 
+            // we'll split the results or use some as backup.
+            currentMatches = matchData.matches.slice(0, 2);
+            matchPool = matchData.matches.slice(2); // Any leftovers
+            
+            // Add some "filler" pool matches for the replacement feature
+            matchPool.push({
+                name: "Sarah Chen", role: "Frontend Developer", score: 91, 
+                skills: "React, Vue, TypeScript", university: "Stanford",
+                availability: "15 hrs/week"
+            });
+            matchPool.push({
+                name: "David Kim", role: "Backend Engineer", score: 84, 
+                skills: "Go, Kubernetes, Postgres", university: "MIT",
+                availability: "20 hrs/week"
+            });
+        } catch(e) {
+            console.error(e);
+            status.textContent = 'Something went wrong.';
+            return;
+        }
 
-</div>
+        status.textContent = 'Matches found! Loading profiles...';
+        card1.classList.remove('scanning');
+        card2.classList.remove('scanning');
+        await sleep(400);
 
+        // Morph Card 1
+        card1.classList.add('morphing');
+        await sleep(350);
+        updateCardUI(0, currentMatches[0]);
 
-<!-- MATCH CARDS -->
+        await sleep(400);
+        card1.classList.remove('morphing');
+        card1.classList.add('matched');
 
-<div class="cards">
+        // Morph Card 2
+        card2.classList.add('morphing');
+        await sleep(350);
+        updateCardUI(1, currentMatches[1]);
 
-<div class="match-card">
+        await sleep(400);
+        card2.classList.remove('morphing');
+        card2.classList.add('matched');
 
-<h3>Alex Sharma</h3>
+        btn.classList.remove('loading');
+        btn.classList.add('done');
+        btn.textContent = '✓ Matched!';
+        status.textContent = 'Your top compatible teammates are ready.';
+    }
 
-<div class="skills">
-Python • Machine Learning • Data
-</div>
+    let inboundInvites = [];
+    let inviteMode = 'explorer'; // 'explorer' or 'inbound'
 
-<div class="match">
-92% Match
-</div>
+    function updateCardUI(index, match) {
+        const i = index + 1;
+        document.getElementById(`name${i}`).textContent = match.name;
+        document.getElementById(`role${i}`).textContent = match.role;
+        document.getElementById(`score${i}`).textContent = match.score + '% Match';
+        document.getElementById(`skills${i}`).innerHTML = (match.skills || "").split(',').map(
+            s => `<span class="skill-tag">${s.trim ? s.trim() : s}</span>`
+        ).join('');
+    }
 
-</div>
+    // ── Interaction Logic ──
 
+    function openExpandedCard(index, mode = 'explorer') {
+        inviteMode = mode;
+        activeCardIndex = index;
+        
+        let match;
+        if (mode === 'explorer') {
+            if (currentMatches.length === 0) return;
+            match = currentMatches[index];
+            document.getElementById('btnAccept').textContent = 'Invite Teammate';
+            document.getElementById('btnAccept').onclick = acceptMatch;
+        } else {
+            match = inboundInvites[index];
+            document.getElementById('btnAccept').textContent = 'Accept Invitation';
+            document.getElementById('btnAccept').onclick = () => acceptInbound(index);
+        }
 
-<div class="match-card">
+        document.getElementById('expName').textContent = match.name;
+        document.getElementById('expRole').textContent = match.role;
+        document.getElementById('expUni').textContent = match.university || "SynergAI Member";
+        document.getElementById('expAvail').textContent = match.availability || "10-20 hrs/week";
+        
+        const bioContent = match.interests || (match.skills ? "Specialist in " + match.skills : "no description");
+        document.getElementById('expandedContent').querySelector('.bio p').textContent = bioContent;
 
-<h3>Riya Gupta</h3>
+        document.getElementById('expSkills').innerHTML = (match.skills || "").split(',').map(
+            s => `<span class="skill-tag" style="background:rgba(129,140,248,0.1); color:#818cf8;">${s.trim()}</span>`
+        ).join('');
 
-<div class="skills">
-React • UI Design • Frontend
-</div>
+        document.getElementById('expandedOverlay').classList.add('active');
+    }
 
-<div class="match">
-88% Match
-</div>
+    function closeExpandedCard() {
+        document.getElementById('expandedOverlay').classList.remove('active');
+        activeCardIndex = null;
+        inviteMode = 'explorer';
+    }
 
-</div>
+    function rejectMatch() {
+        if (activeCardIndex === null) return;
+        if (inviteMode === 'explorer') {
+            triggerMatchRemoval('#ef4444');
+        } else {
+            declineInbound(activeCardIndex);
+        }
+    }
 
-</div>
+    async function acceptMatch() {
+        if (activeCardIndex === null) return;
+        const match = currentMatches[activeCardIndex];
+        
+        // Push actual database invite
+        try {
+            await fetch('/api/invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiver_id: match.id })
+            });
+            // Treat as pending request sent (or connection depending on backend logic)
+            triggerMatchRemoval('#10b981');
+            showToast(`Invite sent to ${match.name}!`);
+        } catch (e) {
+            console.error('Failed to send invite', e);
+        }
+    }
 
+    async function triggerMatchRemoval(color) {
+        const savedIndex = activeCardIndex;
+        const cardId = `card${savedIndex + 1}`;
+        const cardElem = document.getElementById(cardId);
+        const rect = cardElem.getBoundingClientRect();
+        
+        closeExpandedCard();
 
-</div>
+        // ── Visual Explosion ──
+        if (window.triggerWhoosh) {
+            window.triggerWhoosh(rect.left + rect.width/2, rect.top + rect.height/2, color);
+        }
 
+        // Whoosh out
+        cardElem.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+        cardElem.style.opacity = '0';
+        cardElem.style.transform = 'translateY(-100px) scale(0.5) rotate(15deg)';
+        cardElem.style.pointerEvents = 'none';
 
+        await sleep(800);
+
+        // ── Replacement Logic ──
+        if (matchPool.length > 0) {
+            const nextMatch = matchPool.shift();
+            currentMatches[savedIndex] = nextMatch;
+            
+            updateCardUI(savedIndex, nextMatch);
+            
+            // Entry animation
+            cardElem.style.transition = 'none';
+            cardElem.style.transform = 'translateY(50px) scale(0.8)';
+            cardElem.style.opacity = '0';
+            
+            setTimeout(() => {
+                cardElem.style.transition = 'all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                cardElem.style.transform = 'translateY(0) scale(1) rotate(0)';
+                cardElem.style.opacity = '1';
+                cardElem.style.pointerEvents = 'auto';
+                cardElem.style.borderColor = '';
+            }, 50);
+        }
+    }
+
+    async function acceptInbound(index) {
+        const match = inboundInvites[index];
+        
+        try {
+            await fetch('/api/invite/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sender_id: match.id, status: 'accepted' })
+            });
+            acceptedMatches.push(match);
+            inboundInvites.splice(index, 1);
+            
+            updateInboundUI();
+            updateMatchesUI();
+            closeExpandedCard();
+            showToast(`Teammate ${match.name} added!`);
+            
+            if (window.triggerWhoosh) {
+                window.triggerWhoosh(window.innerWidth - 100, 50, '#10b981');
+            }
+        } catch(e) { console.error('Error accepting inbound', e); }
+    }
+
+    async function declineInbound(index) {
+        const match = inboundInvites[index];
+        try {
+            await fetch('/api/invite/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sender_id: match.id, status: 'rejected' })
+            });
+            inboundInvites.splice(index, 1);
+            updateInboundUI();
+            closeExpandedCard();
+        } catch(e) { console.error('Error rejecting inbound', e); }
+    }
+
+    // ── Backend Sync ── //
+
+    async function fetchUserState() {
+        try {
+            const res = await fetch('/api/user_state');
+            const data = await res.json();
+            if(!data.error) {
+                inboundInvites = data.pending_inbound;
+                acceptedMatches = data.teammates;
+                updateInboundUI();
+                updateMatchesUI();
+            }
+        } catch(e) { console.error('Error fetching state', e); }
+    }
+
+    // Refresh state periodically
+    setInterval(fetchUserState, 5000);
+    // Fetch immediately on load
+    fetchUserState();
+
+    // ── UI Sync ──
+
+    function updateInboundUI() {
+        const list = document.getElementById('inboundInvitesList');
+        const dot = document.getElementById('profileDot');
+        const badge = document.getElementById('inviteCountBadge');
+
+        if (inboundInvites.length === 0) {
+            list.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-muted);">No pending invites.</div>';
+            dot.style.display = 'none';
+            badge.style.display = 'none';
+        } else {
+            dot.style.display = 'block';
+            badge.style.display = 'inline-block';
+            badge.textContent = inboundInvites.length;
+            
+            list.innerHTML = inboundInvites.map((m, idx) => `
+                <div class="match-item" style="cursor:pointer;" onclick="openExpandedCard(${idx}, 'inbound')">
+                    <div class="match-avatar" style="background: #fbbf24; color: #000;">${m.name.charAt(0)}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:1.1rem;">${m.name}</div>
+                        <div style="color:var(--text-muted); font-size:0.9rem;">Invited you to connect</div>
+                    </div>
+                    <div style="color:#fbbf24; font-weight:800; font-size:0.7rem; border:1px solid #fbbf24; padding:2px 8px; border-radius:5px;">PENDING</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function updateMatchesUI() {
+        const list = document.getElementById('acceptedMatchesList');
+        if (acceptedMatches.length === 0) return;
+
+        list.innerHTML = acceptedMatches.map(m => `
+            <div class="match-item" style="cursor:pointer;" onclick="openChat(${m.id}, '${m.name}')">
+                <div class="match-avatar">${m.name ? m.name.charAt(0) : '?'}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700; font-size:1.1rem;">${m.name}</div>
+                    <div style="color:var(--text-muted); font-size:0.9rem;">${m.role}</div>
+                </div>
+                <div style="color:#10b981; font-weight:800; font-size:0.8rem;">CHAT</div>
+            </div>
+        `).join('');
+    }
+
+    const updateMatchesTab = updateMatchesUI;
+
+    // ── Chat Logic ── //
+    let currentChatId = null;
+    let chatInterval = null;
+
+    function openChat(teammateId, teammateName) {
+        currentChatId = teammateId;
+        document.getElementById('chatName').textContent = teammateName;
+        document.getElementById('chatAvatar').textContent = teammateName.charAt(0);
+        document.getElementById('chatOverlay').classList.add('active');
+        fetchMessages();
+        chatInterval = setInterval(fetchMessages, 3000); // Poll for messages
+    }
+
+    function closeChat() {
+        document.getElementById('chatOverlay').classList.remove('active');
+        currentChatId = null;
+        if(chatInterval) clearInterval(chatInterval);
+    }
+
+    async function fetchMessages() {
+        if (!currentChatId) return;
+        try {
+            const res = await fetch(`/api/messages/${currentChatId}`);
+            const msgs = await res.json();
+            
+            const cont = document.getElementById('chatMessages');
+            cont.innerHTML = msgs.map(m => `
+                <div class="chat-message ${m.sender_id === currentUserId ? 'message-sent' : 'message-received'}">
+                    ${m.text}
+                </div>
+            `).join('');
+            cont.scrollTop = cont.scrollHeight;
+        } catch(e) { console.error('Error fetching messages', e); }
+    }
+
+    async function sendChatMessage() {
+        if (!currentChatId) return;
+        const input = document.getElementById('chatInputMessage');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        try {
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiver_id: currentChatId, text: text })
+            });
+            fetchMessages(); // refresh
+        } catch(e) { console.error('Failed to send msg', e); }
+    }
+
+    // Global variable tracking logged in user 
+    const currentUserId = parseInt("{{ user.id }}", 10);
+
+    function showToast(msg) {
+        const t = document.getElementById('matchToast');
+        t.children[1].textContent = msg;
+        t.classList.add('active');
+        setTimeout(() => t.classList.remove('active'), 3000);
+    }
+
+    function toggleProfileModal(show) {
+        const overlay = document.getElementById('profileOverlay');
+        if (show) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updateMatchesTab(); // Keep sync
+        } else {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (event) event.currentTarget.classList.add('active');
+
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    </script>
 </body>
 </html>

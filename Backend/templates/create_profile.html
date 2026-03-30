@@ -1,146 +1,522 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Create Profile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Profile | SynergAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <style>
+        /* ── Step Indicator ── */
+        .step-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+        }
 
-<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+        .step-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: all 0.4s ease;
+        }
 
-<style>
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+            transform: scale(1.3);
+        }
 
-.form-section{
-display:flex;
-flex-direction:column;
-gap:12px;
-}
+        .step-line {
+            width: 40px; height: 2px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.4s ease;
+        }
 
-.hidden{
-display:none;
-}
+        .step-line.active {
+            background: var(--primary);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+        }
 
-</style>
+        /* ── Glowy Buttons ── */
+        .glow-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 25px rgba(99, 102, 241, 0.4);
+        }
 
+        .glow-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 40px rgba(99, 102, 241, 0.6);
+        }
+
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .glow-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        }
+
+        .glow-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        }
+
+        /* ── Loading state for continue button ── */
+        .glow-btn.loading {
+            pointer-events: none;
+        }
+
+        .glow-btn.loading::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 1rem;
+            border: 2px solid transparent;
+            border-top-color: #818cf8;
+            border-right-color: #c084fc;
+            animation: spinRing 1s linear infinite;
+        }
+
+        @keyframes spinRing {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── AI Processing animation ── */
+        .ai-processing {
+            display: none;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .ai-processing.active {
+            display: block;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-brain {
+            position: relative;
+            width: 80px; height: 80px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .ai-brain .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+
+        .ai-brain .ring:nth-child(1) {
+            border-top-color: #818cf8;
+            animation: spinRing 1.5s linear infinite;
+        }
+
+        .ai-brain .ring:nth-child(2) {
+            inset: 8px;
+            border-right-color: #c084fc;
+            animation: spinRing 2s linear infinite reverse;
+        }
+
+        .ai-brain .ring:nth-child(3) {
+            inset: 16px;
+            border-bottom-color: #34d399;
+            animation: spinRing 1.2s linear infinite;
+        }
+
+        .ai-brain .core {
+            position: absolute;
+            inset: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #c084fc);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .ai-processing h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-processing p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .ai-status {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            min-height: 1.2rem;
+        }
+
+        /* ── Password strength bar ── */
+        .pw-bar-container {
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .pw-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .pw-weak   .pw-bar { width: 33%; background: #f87171; }
+        .pw-medium .pw-bar { width: 66%; background: #fbbf24; }
+        .pw-strong .pw-bar { width: 100%; background: #34d399; }
+
+        .pw-hint {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        /* ── Transitions ── */
+        .login-box {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .login-box.switching {
+            opacity: 0;
+            transform: scale(0.92);
+            filter: blur(6px);
+        }
+
+        .hidden { display: none; }
+    </style>
 </head>
-
 <body>
+    <nav class="navbar">
+        <h2>SynergAI</h2>
+    </nav>
 
-<div class="navbar">
-<h2>SynergAI</h2>
-</div>
+    <div class="hero">
+        <div class="left">
+            <h1>START YOUR<br>JOURNEY</h1>
+            <p>Tell us about your skills and interests to find the perfect teammates for your next project.</p>
+        </div>
+
+        <div class="right">
+            <div class="login-box" id="glassBox">
+
+                <!-- Step indicator -->
+                <div class="step-bar">
+                    <div class="step-dot active" id="dot1"></div>
+                    <div class="step-line" id="line1"></div>
+                    <div class="step-dot" id="dot2"></div>
+                    <div class="step-line" id="line2"></div>
+                    <div class="step-dot" id="dot3"></div>
+                </div>
+
+                <!-- ═══ STEP 1: Profile Details ═══ -->
+                <div id="step1">
+                    <h2>Create Profile</h2>
+                    <form id="profileForm">
+                        <input type="text" name="name" placeholder="Full Name" required>
+                        <input type="text" name="university" placeholder="University" required>
+                        
+                        <!-- Skills Dropdown -->
+                        <div style="margin-bottom: 1rem; text-align: left;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;">Select Skills</label>
+                            <select id="skillSelect" class="form-input" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; padding: 0.8rem; border-radius: 0.8rem; margin-top: 0.3rem;" onchange="addSkill(this.value)">
+                                <option value="" disabled selected>Choose skills...</option>
+                                <option value="Angular">Angular</option>
+                                <option value="AWS">AWS</option>
+                                <option value="C++">C++</option>
+                                <option value="CSS">CSS</option>
+                                <option value="Data Science">Data Science</option>
+                                <option value="DevOps">DevOps</option>
+                                <option value="Django">Django</option>
+                                <option value="Docker">Docker</option>
+                                <option value="Express.js">Express.js</option>
+                                <option value="Figma">Figma</option>
+                                <option value="Flask">Flask</option>
+                                <option value="Java">Java</option>
+                                <option value="JavaScript">JavaScript</option>
+                                <option value="Machine Learning">Machine Learning</option>
+                                <option value="MongoDB">MongoDB</option>
+                                <option value="MySQL">MySQL</option>
+                                <option value="Node.js">Node.js</option>
+                                <option value="Python">Python</option>
+                                <option value="React">React</option>
+                                <option value="TypeScript">TypeScript</option>
+                            </select>
+                            <input type="text" name="skills" id="skillsInput" placeholder="Selected skills" readonly required style="margin-top: 0.5rem;">
+                        </div>
+
+                        <input type="text" name="interests" placeholder="Interests (e.g. AI, Fintech)" required>
+                        
+                        <!-- Role Dropdown -->
+                        <div style="margin-bottom: 1rem; text-align: left;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;">Preferred Role</label>
+                            <select name="role" required style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; padding: 0.8rem; border-radius: 0.8rem; margin-top: 0.3rem;">
+                                <option value="" disabled selected>Choose a role...</option>
+                                <option value="Backend Developer">Backend Developer</option>
+                                <option value="Data Scientist">Data Scientist</option>
+                                <option value="DevOps Engineer">DevOps Engineer</option>
+                                <option value="Frontend Developer">Frontend Developer</option>
+                                <option value="Full Stack Developer">Full Stack Developer</option>
+                                <option value="ML Engineer">ML Engineer</option>
+                                <option value="Project Manager">Project Manager</option>
+                                <option value="UI/UX Designer">UI/UX Designer</option>
+                            </select>
+                        </div>
+
+                        <input type="text" name="availability" placeholder="Availability (hours/week)" required>
+                        <button type="button" class="glow-btn" id="continueBtn" onclick="saveProfile()">
+                            Continue →
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ═══ STEP 2: AI Processing ═══ -->
+                <div class="ai-processing" id="step2">
+                    <div class="ai-brain">
+                        <div class="ring"></div>
+                        <div class="ring"></div>
+                        <div class="ring"></div>
+                        <div class="core"></div>
+                    </div>
+                    <h3>Building Your Profile</h3>
+                    <p>Our AI is analyzing your skills and preparing your matching profile...</p>
+                    <div class="ai-status" id="aiStatus">Initializing...</div>
+                </div>
+
+                <!-- ═══ STEP 3: Account Creation ═══ -->
+                <div id="step3" class="hidden">
+                    <h2>Secure Your Account</h2>
+                    <form action="/save_account" method="POST" id="accountForm">
+                        <input type="email" name="email" placeholder="Email address" required id="inputEmail">
+                        <input type="password" name="password" placeholder="Password" required id="inputPassword" oninput="checkPassword(this.value)">
+
+                        <div class="pw-bar-container" id="pwBar">
+                            <div class="pw-bar"></div>
+                        </div>
+
+                        <div class="pw-hint" id="pwHint">Must contain 1 uppercase letter, 1 number, and be 8+ characters.</div>
+
+                        <button type="submit" class="glow-btn" id="finishBtn" disabled>
+                            Finish Registration
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Background -->
+    <canvas id="particles"></canvas>
+    <script src="{{ url_for('static', filename='particles.js') }}"></script>
+
+    <script>
+    /* ══════════════════════════════════════════
+       STEP 1 → Save profile via AJAX
+       ══════════════════════════════════════════ */
+    async function saveProfile() {
+        const form = document.getElementById('profileForm');
+        const btn = document.getElementById('continueBtn');
+
+        // Validate all fields
+        const inputs = form.querySelectorAll('input[required]');
+        for (const inp of inputs) {
+            if (!inp.value.trim()) {
+                inp.focus();
+                inp.style.borderColor = '#f87171';
+                setTimeout(() => inp.style.borderColor = '', 2000);
+                return;
+            }
+        }
+
+        const data = {
+            name: form.name.value,
+            university: form.university.value,
+            skills: form.skills.value,
+            interests: form.interests.value,
+            role: form.role.value,
+            availability: form.availability.value
+        };
+
+        // Button loading state
+        btn.classList.add('loading');
+        btn.textContent = 'Saving...';
+
+        try {
+            const res = await fetch('/save_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if (result.status === 'success') {
+                // Transition to AI processing step
+                transitionToStep(2);
+                runAIAnimation();
+            }
+        } catch (err) {
+            console.error('Profile save failed:', err);
+            btn.classList.remove('loading');
+            btn.textContent = 'Continue →';
+        }
+    }
 
 
-<div class="hero">
+    /* ══════════════════════════════════════════
+       STEP 2 → AI Processing Animation
+       ══════════════════════════════════════════ */
+    async function runAIAnimation() {
+        const status = document.getElementById('aiStatus');
+        const messages = [
+            'Tokenizing your skills...',
+            'Mapping interest vectors...',
+            'Building compatibility matrix...',
+            'Optimizing match parameters...',
+            'Profile analysis complete ✓'
+        ];
 
-<div class="left">
+        for (let i = 0; i < messages.length; i++) {
+            await sleep(800);
+            status.textContent = messages[i];
+        }
 
-<h1>Create Your Profile</h1>
+        await sleep(600);
 
-<p>
-Tell us about yourself so we can match you with the right teammates.
-</p>
-
-</div>
-
-
-
-<div class="right">
-
-<div class="login-box">
-
-<!-- STEP 1 PROFILE FORM -->
-
-<form id="profileForm">
-
-<div class="form-section">
-
-<input type="text" name="name" placeholder="Name" required>
-
-<input type="text" name="university" placeholder="University" required>
-
-<input type="text" name="skills" placeholder="Skills (Python, ML, Web)" required>
-
-<input type="text" name="interests" placeholder="Interests (AI, Startups)" required>
-
-<input type="text" name="role" placeholder="Preferred Role (Frontend / Backend)" required>
-
-<input type="text" name="availability" placeholder="Availability (hours/week)" required>
-
-<button type="button" onclick="showAccountForm()">Save Profile</button>
-
-</div>
-
-</form>
+        // Move to step 3
+        transitionToStep(3);
+        setTimeout(() => {
+            document.getElementById('inputEmail').focus();
+        }, 500);
+    }
 
 
+    /* ══════════════════════════════════════════
+       STEP 3 → Password Validation
+       ══════════════════════════════════════════ */
+    function checkPassword(pw) {
+        const bar = document.getElementById('pwBar');
+        const hint = document.getElementById('pwHint');
+        const btn = document.getElementById('finishBtn');
 
-<!-- STEP 2 ACCOUNT FORM -->
+        bar.className = 'pw-bar-container';
 
-<form action="/save_account" method="POST" id="accountForm" class="hidden">
+        if (pw.length === 0) {
+            btn.disabled = true;
+            return;
+        }
 
-<div class="form-section">
+        let score = 0;
+        if (pw.length >= 8)          score++;
+        if (/[A-Z]/.test(pw))        score++;
+        if (/[0-9]/.test(pw))        score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
 
-<input type="hidden" name="name" id="hidden_name">
-<input type="hidden" name="university" id="hidden_university">
-<input type="hidden" name="skills" id="hidden_skills">
-<input type="hidden" name="interests" id="hidden_interests">
-<input type="hidden" name="role" id="hidden_role">
-<input type="hidden" name="availability" id="hidden_availability">
-
-<input type="email" name="email" placeholder="Email" required>
-
-<input type="password" name="password" placeholder="Password" required>
-
-<button type="submit">Create Account</button>
-
-</div>
-
-</form>
-
-
-</div>
-
-</div>
-
-</div>
-
-
-
-<canvas id="particles"></canvas>
-
-<script src="{{ url_for('static', filename='particles.js') }}"></script>
-
+        if (score <= 1) {
+            bar.classList.add('pw-weak');
+            hint.style.color = '#f87171';
+            btn.disabled = true;
+        } else if (score <= 2) {
+            bar.classList.add('pw-medium');
+            hint.style.color = '#fbbf24';
+            btn.disabled = true;
+        } else {
+            bar.classList.add('pw-strong');
+            hint.style.color = '#34d399';
+            btn.disabled = false;
+        }
+    }
 
 
-<script>
+    /* ══════════════════════════════════════════
+       Transition Helper
+       ══════════════════════════════════════════ */
+    function transitionToStep(stepNum) {
+        const box = document.getElementById('glassBox');
 
-function showAccountForm(){
+        box.classList.add('switching');
 
-let box = document.querySelector(".login-box")
-let form = document.getElementById("profileForm")
+        setTimeout(() => {
+            // Hide all steps
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').classList.add('hidden');
 
-/* start blur animation */
+            // Show target step
+            if (stepNum === 2) {
+                document.getElementById('step2').style.display = '';
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('dot1').classList.remove('active');
+                document.getElementById('dot2').classList.add('active');
+                document.getElementById('line1').classList.add('active');
+            } else if (stepNum === 3) {
+                document.getElementById('step3').classList.remove('hidden');
+                document.getElementById('dot2').classList.remove('active');
+                document.getElementById('dot3').classList.add('active');
+                document.getElementById('line2').classList.add('active');
+            }
 
-box.classList.add("fade-out")
+            box.classList.remove('switching');
+        }, 400);
+    }
 
-setTimeout(()=>{
+    function addSkill(skill) {
+        const input = document.getElementById('skillsInput');
+        let current = input.value.split(',').map(s => s.trim()).filter(s => s);
+        if (!current.includes(skill)) {
+            current.push(skill);
+            input.value = current.join(', ');
+        }
+        document.getElementById('skillSelect').value = "";
+    }
 
-document.getElementById("hidden_name").value = form.name.value
-document.getElementById("hidden_university").value = form.university.value
-document.getElementById("hidden_skills").value = form.skills.value
-document.getElementById("hidden_interests").value = form.interests.value
-document.getElementById("hidden_role").value = form.role.value
-document.getElementById("hidden_availability").value = form.availability.value
-
-form.style.display="none"
-
-document.getElementById("accountForm").classList.remove("hidden")
-
-box.classList.remove("fade-out")
-box.classList.add("fade-in")
-
-},400)
-
-}
-
-</script>
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    </script>
 </body>
 </html>
