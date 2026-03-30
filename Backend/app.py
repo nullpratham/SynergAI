@@ -197,7 +197,7 @@ def api_matches():
 
     return jsonify({
         "fallback": False,
-        "matches": matches[:2],
+        "matches": matches,
         "engine": "Neural Team Complementarity Model"
     })
 

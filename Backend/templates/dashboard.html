@@ -1149,22 +1149,26 @@
             const res = await fetch('/api/matches');
             matchData = await res.json();
             
-            // In a real app, we'd fetch more than 2, but for this demo 
-            // we'll split the results or use some as backup.
-            currentMatches = matchData.matches.slice(0, 2);
-            matchPool = matchData.matches.slice(2); // Any leftovers
-            
-            // Add some "filler" pool matches for the replacement feature
-            matchPool.push({
-                name: "Sarah Chen", role: "Frontend Developer", score: 91, 
-                skills: "React, Vue, TypeScript", university: "Stanford",
-                availability: "15 hrs/week"
-            });
-            matchPool.push({
-                name: "David Kim", role: "Backend Engineer", score: 84, 
-                skills: "Go, Kubernetes, Postgres", university: "MIT",
-                availability: "20 hrs/week"
-            });
+            // Set up matches dynamically from DB
+            if (matchData.matches.length === 0) {
+                status.textContent = 'No more teammates found. Check back later!';
+                btn.classList.remove('loading');
+                btn.textContent = 'End of Deck';
+                card1.classList.remove('scanning');
+                card2.classList.remove('scanning');
+                card1.style.display = 'none';
+                card2.style.display = 'none';
+                return;
+            }
+
+            // Assign real DB users to current matches and pool
+            matchPool = [...matchData.matches];
+            currentMatches = [];
+            currentMatches.push(matchPool.shift()); // Guaranteed at least 1 since length > 0
+            if (matchPool.length > 0) {
+                currentMatches.push(matchPool.shift());
+            }
+
         } catch(e) {
             console.error(e);
             status.textContent = 'Something went wrong.';
@@ -1177,6 +1181,7 @@
         await sleep(400);
 
         // Morph Card 1
+        card1.style.display = 'block';
         card1.classList.add('morphing');
         await sleep(350);
         updateCardUI(0, currentMatches[0]);
@@ -1185,14 +1190,19 @@
         card1.classList.remove('morphing');
         card1.classList.add('matched');
 
-        // Morph Card 2
-        card2.classList.add('morphing');
-        await sleep(350);
-        updateCardUI(1, currentMatches[1]);
+        // Morph Card 2 only if we have a second match
+        if (currentMatches.length > 1) {
+            card2.style.display = 'block';
+            card2.classList.add('morphing');
+            await sleep(350);
+            updateCardUI(1, currentMatches[1]);
 
-        await sleep(400);
-        card2.classList.remove('morphing');
-        card2.classList.add('matched');
+            await sleep(400);
+            card2.classList.remove('morphing');
+            card2.classList.add('matched');
+        } else {
+            card2.style.display = 'none';
+        }
 
         btn.classList.remove('loading');
         btn.classList.add('done');

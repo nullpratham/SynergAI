@@ -316,6 +316,7 @@ def get_ai_matches(current_user, other_users):
     for user in other_users:
         score = predict_match_score(current_user, user)
         matches.append({
+            "id": user["id"],
             "name": user["name"],
             "skills": user.get("skills", "No skills listed"),
             "interests": user.get("interests", ""),
