@@ -313,20 +313,67 @@ def load_model():
     return _model_cache["model"], _model_cache["scaler"]
 
 
-def predict_match_score(user_a, user_b):
-    """Predict the compatibility score between two users (0-100)."""
+def predict_match_scores_batch(current_user, other_users):
+    """Predict compatibility scores for a batch of users."""
+    if not other_users: return []
     model, scaler = load_model()
-    features = encode_pair(user_a, user_b).reshape(1, -1)
-    features_scaled = scaler.transform(features)
-    score = model.predict(features_scaled)[0]
-    return int(np.clip(score * 100, 0, 100))
+    features_list = [encode_pair(current_user, user) for user in other_users]
+    features_matrix = np.array(features_list)
+    features_scaled = scaler.transform(features_matrix)
+    scores = model.predict(features_scaled)
+    # MLPRegressor predicts 1D array of floats
+    return [int(np.clip(score * 100, 0, 100)) for score in scores]
 
+def predict_match_score(user_a, user_b):
+    """Predict the compatibility score between two users (single)."""
+    scores = predict_match_scores_batch(user_a, [user_b])
+    return scores[0] if scores else 0
 
-def get_ai_matches(current_user, other_users):
+def generate_match_reason(user_a, user_b, hackathon_mode=False):
+    """Generate a lightweight text explanation of why they matched."""
+    if hackathon_mode:
+        return "⚡ Hackathon Mode: Selected for rapid prototyping speed and schedule alignment."
+        
+    role_score = get_role_complement_score(user_a.get("role", ""), user_b.get("role", ""))
+    role_b = user_b.get("role", "role").strip()
+    
+    if role_score >= 0.90:
+        return f"Perfect synergy: your background perfectly bridges their gap in {role_b}."
+    elif user_a.get("role", "").strip() == role_b and role_b:
+        return f"Great minds think alike: double up your {role_b} firepower!"
+        
+    skills_b = [s.strip() for s in user_b.get("skills", "").split(",") if s.strip()]
+    if skills_b:
+        return f"Their knowledge of {skills_b[0]} is a fantastic addition to your squad."
+        
+    return "The AI detected a strong complementary algorithmic fit."
+
+def get_ai_matches(current_user, other_users, hackathon_mode=False):
     """Rank all other users by AI-predicted compatibility."""
+    if not other_users:
+        return []
+
+    if hackathon_mode:
+        scores = []
+        hm_skills = ["react", "next.js", "tailwind", "firebase", "fastapi", "python"]
+        for user in other_users:
+            score = 50
+            if current_user.get("availability") and user.get("availability"):
+                if current_user["availability"].strip().lower() == user["availability"].strip().lower():
+                    score += 25
+            
+            u_skills = [s.strip().lower() for s in user.get("skills", "").split(",")]
+            for s in hm_skills:
+                if s in u_skills: score += 5
+                
+            if current_user.get("role") != user.get("role"):
+                score += 10
+            scores.append(min(100, score))
+    else:
+        scores = predict_match_scores_batch(current_user, other_users)
+    
     matches = []
-    for user in other_users:
-        score = predict_match_score(current_user, user)
+    for user, score in zip(other_users, scores):
         matches.append({
             "id": user["id"],
             "name": user["name"],
@@ -334,7 +381,9 @@ def get_ai_matches(current_user, other_users):
             "interests": user.get("interests", ""),
             "score": score,
             "role": user.get("role", "Student"),
-            "university": user.get("university", "")
+            "university": user.get("university", ""),
+            "description": user.get("description", ""),
+            "reason": generate_match_reason(current_user, user, hackathon_mode)
         })
 
     matches.sort(key=lambda m: m["score"], reverse=True)

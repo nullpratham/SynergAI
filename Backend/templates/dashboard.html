@@ -50,6 +50,12 @@
             width: 350px;
             transform-style: preserve-3d;
             animation: float3d 6s ease-in-out infinite;
+            touch-action: pan-y;
+            cursor: grab;
+        }
+
+        .match-card:active {
+            cursor: grabbing;
         }
 
         .match-card:nth-child(2) {
@@ -62,11 +68,21 @@
             100% { transform: translateY(0px) rotateX(4deg) rotateY(-4deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3); }
         }
 
-        .match-card:hover {
-            animation-play-state: paused;
-            transform: translateY(-25px) scale(1.05) rotateX(8deg) rotateY(-8deg) !important;
-            box-shadow: 0 45px 80px -15px rgba(0, 0, 0, 0.5), 0 0 50px rgba(99, 102, 241, 0.5) !important;
-            border-color: var(--primary);
+        @media (hover: hover) and (pointer: fine) {
+            .match-card:hover {
+                animation-play-state: paused;
+                transform: translateY(-25px) scale(1.05) rotateX(8deg) rotateY(-8deg) !important;
+                box-shadow: 0 45px 80px -15px rgba(0, 0, 0, 0.5), 0 0 50px rgba(99, 102, 241, 0.5) !important;
+                border-color: var(--primary);
+            }
+        }
+
+        .match-card.swipe-active {
+            transition: none !important;
+            transform: var(--swipe-transform) !important;
+            box-shadow: var(--swipe-shadow) !important;
+            border-color: var(--swipe-border) !important;
+            animation-play-state: paused !important;
         }
 
         /* ── Scanning overlay on cards ── */
@@ -1182,6 +1198,7 @@
     </style>
     <!-- Three.js for 3D Gravity Sphere -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -1396,7 +1413,7 @@
 
                 <div style="margin-top: 2rem;">
                     <label style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.8rem;">Top Skills</label>
-                    <div class="skills-container" id="expSkills"></div>
+                    <div class="skills-container" id="expSkills" style="position: relative; height: 180px; width: 100%; border-radius: 1rem; overflow: hidden; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); margin-top: 1rem;"></div>
                 </div>
 
                 <div class="action-buttons">
@@ -1511,17 +1528,34 @@
 
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1>POTENTIAL<br>TEAMMATES</h1>
-            <p style="color: var(--text-muted); max-width: 350px;">Students compatible with your skills appear here. Hit "Start Matching" to find your ideal teammates.</p>
+            <div>
+                <h1>POTENTIAL<br>TEAMMATES</h1>
+                <p style="color: var(--text-muted); max-width: 350px;">Students compatible with your skills appear here. Hit "Start Matching" to find your ideal teammates.</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 1rem 1.5rem; border-radius: 1rem; display: flex; align-items: center; gap: 1rem;">
+                <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: #fbbf24;">⚡ Hackathon Mode</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Prio immediate availability</div>
+                </div>
+                <!-- Simple CSS Toggler -->
+                <label style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                    <input type="checkbox" id="hackathonToggle" onchange="toggleHackathonMode(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                    <span id="htSlider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 3px;">
+                        <span id="htKnob" style="content:''; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; display: inline-block; transition: .4s;"></span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         <div class="dashboard-grid" id="cardGrid">
-            <div class="match-card" id="card1" onclick="openExpandedCard(0)">
+            <div class="match-card" id="card1">
                 <div class="scan-line"></div>
                 <div class="match-score" id="score1">95% Match</div>
                 <h3 id="name1">Stephen (Example)</h3>
                 <div class="role" id="role1">UI/UX Designer</div>
                 <div class="skills-container" id="skills1"></div>
+                <div id="reason1" style="font-size: 0.85rem; color: #10b981; margin-top: 1rem; font-style: italic; background: rgba(16,185,129,0.05); padding: 0.6rem; border-radius: 0.5rem; border-left: 3px solid #10b981; display: none;"></div>
                 
                 <!-- Error View -->
                 <div class="error-content" style="text-align: center; padding: 1rem 0;">
@@ -1537,12 +1571,13 @@
                 </div>
             </div>
 
-            <div class="match-card" id="card2" onclick="openExpandedCard(1)">
+            <div class="match-card" id="card2">
                 <div class="scan-line"></div>
                 <div class="match-score" id="score2">88% Match</div>
                 <h3 id="name2">Alex (Example)</h3>
                 <div class="role" id="role2">Backend Developer</div>
                 <div class="skills-container" id="skills2"></div>
+                <div id="reason2" style="font-size: 0.85rem; color: #10b981; margin-top: 1rem; font-style: italic; background: rgba(16,185,129,0.05); padding: 0.6rem; border-radius: 0.5rem; border-left: 3px solid #10b981; display: none;"></div>
                 
                 <!-- Error View (Secondary) -->
                 <div class="error-content" style="text-align: center; padding: 1.5rem 0;">
@@ -1571,6 +1606,33 @@
     <div class="orb orb-2"></div>
 
     <script>
+    let hackathonMode = false;
+    function toggleHackathonMode(enabled) {
+        hackathonMode = enabled;
+        const slider = document.getElementById('htSlider');
+        const knob = document.getElementById('htKnob');
+        const headerH1 = document.querySelector('.dashboard-header h1');
+        
+        if (enabled) {
+            slider.style.backgroundColor = '#fbbf24';
+            knob.style.transform = 'translateX(20px)';
+            headerH1.style.textShadow = "0 0 20px rgba(251, 191, 36, 0.4)";
+            showWarnToast("⚡ Hackathon Mode ON: Speed + Velocity focused.");
+        } else {
+            slider.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            knob.style.transform = 'translateX(0)';
+            headerH1.style.textShadow = "none";
+            showWarnToast("Hackathon Mode OFF: Returned to stable search.");
+        }
+        
+        // Reset match button so they can re-match
+        const btn = document.getElementById('startMatchBtn');
+        if (btn.classList.contains('done')) {
+            btn.classList.remove('done');
+            btn.textContent = '⚡ Re-match with New Settings';
+        }
+    }
+
     let currentMatches = []; // Holds the 2 currently visible matches
     let matchPool = [];      // Holds extra matches from backend
     let acceptedMatches = []; 
@@ -1600,7 +1662,7 @@
 
         let matchData;
         try {
-            const res = await fetch('/api/matches');
+            const res = await fetch(`/api/matches?hackathon=${hackathonMode}`);
             matchData = await res.json();
             
             // Set up matches dynamically from DB
@@ -1682,6 +1744,11 @@
         document.getElementById(`skills${i}`).innerHTML = (match.skills || "").split(',').map(
             s => `<span class="skill-tag">${s.trim ? s.trim() : s}</span>`
         ).join('');
+        const reasonEl = document.getElementById(`reason${i}`);
+        if(reasonEl && match.reason) {
+            reasonEl.textContent = "💡: " + match.reason;
+            reasonEl.style.display = "block";
+        }
     }
 
     // ── Interaction Logic ──
@@ -1707,14 +1774,102 @@
         document.getElementById('expUni').textContent = match.university || "SynergAI Member";
         document.getElementById('expAvail').textContent = match.availability || "10-20 hrs/week";
         
-        const bioContent = match.interests || (match.skills ? "Specialist in " + match.skills : "no description");
+        const bioContent = match.description || match.interests || (match.skills ? "Specialist in " + match.skills : "no description");
         document.getElementById('expandedContent').querySelector('.bio p').textContent = bioContent;
 
-        document.getElementById('expSkills').innerHTML = (match.skills || "").split(',').map(
-            s => `<span class="skill-tag" style="background:rgba(129,140,248,0.1); color:#818cf8;">${s.trim()}</span>`
-        ).join('');
+        if(window.orbEngine && window.orbRender) { 
+            Matter.Render.stop(window.orbRender); 
+            Matter.World.clear(window.orbEngine.world); 
+            Matter.Engine.clear(window.orbEngine); 
+            if(window.orbRender.canvas) window.orbRender.canvas.remove(); 
+        }
+        setTimeout(() => initSkillOrbs((match.skills || "").split(',')), 300); // 300ms delay for modal transition
 
         document.getElementById('expandedOverlay').classList.add('active');
+    }
+
+    function initSkillOrbs(skillsArray) {
+        skillsArray = skillsArray.map(s => s.trim()).filter(Boolean);
+        if(!skillsArray.length) skillsArray = ["No Skills Listed"];
+        
+        const wrapper = document.getElementById('expSkills');
+        wrapper.innerHTML = "";
+        
+        const Engine = Matter.Engine,
+              Render = Matter.Render,
+              Runner = Matter.Runner,
+              Bodies = Matter.Bodies,
+              Composite = Matter.Composite,
+              Mouse = Matter.Mouse,
+              MouseConstraint = Matter.MouseConstraint;
+
+        const engine = Engine.create();
+        window.orbEngine = engine;
+        engine.world.gravity.y = 0.8;
+
+        const render = Render.create({
+            element: wrapper,
+            engine: engine,
+            options: {
+                width: wrapper.clientWidth || 400,
+                height: 180,
+                wireframes: false,
+                background: 'transparent'
+            }
+        });
+        window.orbRender = render;
+
+        // Ground and walls so orbs don't fall off
+        const w = render.options.width;
+        const ground = Bodies.rectangle(w/2, 190, w + 100, 20, { isStatic: true, render: { visible: false } });
+        const wallL = Bodies.rectangle(-10, 90, 20, 200, { isStatic: true, render: { visible: false } });
+        const wallR = Bodies.rectangle(w + 10, 90, 20, 200, { isStatic: true, render: { visible: false } });
+
+        const colors = ['#818cf8', '#34d399', '#f472b6', '#fbbf24', '#60a5fa'];
+        const orbs = skillsArray.map((skill, i) => {
+            const rad = 25 + Math.random() * 8;
+            const x = (w/2 - 50) + Math.random() * 100;
+            return Bodies.circle(x, -30 - (i*40), rad, {
+                restitution: 0.8,
+                friction: 0.1,
+                render: {
+                    fillStyle: colors[i % colors.length],
+                    strokeStyle: '#ffffff',
+                    lineWidth: 2
+                },
+                plugin: { label: skill } 
+            });
+        });
+
+        Composite.add(engine.world, [ground, wallL, wallR, ...orbs]);
+
+        const mouse = Mouse.create(render.canvas);
+        const mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: { stiffness: 0.2, render: { visible: false } }
+        });
+        Composite.add(engine.world, mouseConstraint);
+        render.mouse = mouse;
+
+        Render.run(render);
+        const runner = Runner.create();
+        Runner.run(runner, engine);
+
+        // Custom text render
+        Matter.Events.on(render, 'afterRender', function() {
+            const ctx = render.context;
+            ctx.font = "bold 11px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "white";
+            for(let orb of orbs) {
+                // simple shadow
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(orb.plugin.label, orb.position.x, orb.position.y);
+                ctx.shadowBlur = 0;
+            }
+        });
     }
 
     function closeExpandedCard() {
@@ -1723,16 +1878,16 @@
         inviteMode = 'explorer';
     }
 
-    function rejectMatch() {
+    function rejectMatch(dirX = 0) {
         if (activeCardIndex === null) return;
         if (inviteMode === 'explorer') {
-            triggerMatchRemoval('#ef4444');
+            triggerMatchRemoval('#ef4444', dirX);
         } else {
             declineInbound(activeCardIndex);
         }
     }
 
-    async function acceptMatch() {
+    async function acceptMatch(dirX = 0) {
         if (activeCardIndex === null) return;
         const match = currentMatches[activeCardIndex];
         
@@ -1744,14 +1899,14 @@
                 body: JSON.stringify({ receiver_id: match.id })
             });
             // Treat as pending request sent (or connection depending on backend logic)
-            triggerMatchRemoval('#10b981');
+            triggerMatchRemoval('#10b981', dirX);
             showToast(`Invite sent to ${match.name}!`);
         } catch (e) {
             console.error('Failed to send invite', e);
         }
     }
 
-    async function triggerMatchRemoval(color) {
+    async function triggerMatchRemoval(color, dirX = 0) {
         const savedIndex = activeCardIndex;
         const cardId = `card${savedIndex + 1}`;
         const cardElem = document.getElementById(cardId);
@@ -1765,9 +1920,12 @@
         }
 
         // Whoosh out
-        cardElem.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+        const throwX = dirX !== 0 ? (dirX > 0 ? 300 : -300) : 0;
+        const rotateThrow = dirX !== 0 ? (dirX > 0 ? 25 : -25) : 15;
+        
+        cardElem.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
         cardElem.style.opacity = '0';
-        cardElem.style.transform = 'translateY(-100px) scale(0.5) rotate(15deg)';
+        cardElem.style.transform = `translateX(${throwX}px) translateY(-100px) scale(0.5) rotate(${rotateThrow}deg)`;
         cardElem.style.pointerEvents = 'none';
 
         await sleep(800);
@@ -1859,7 +2017,12 @@
         const badge = document.getElementById('inviteCountBadge');
 
         if (inboundInvites.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-muted);">No pending invites.</div>';
+            list.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(99,102,241,0.05); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px dashed rgba(99,102,241,0.2);">📬</div>
+                    <div>No pending invites.<br><span style="font-size: 0.85rem; opacity: 0.7;">Your inbox is clear.</span></div>
+                </div>
+            `;
             dot.style.display = 'none';
             badge.style.display = 'none';
         } else {
@@ -2201,7 +2364,12 @@
         // Active Teams
         const activeList = document.getElementById('activeTeamsList');
         if (myTeams.length === 0) {
-            activeList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No active teams. Form one!</div>';
+            activeList.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(52,211,153,0.05); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border: 1px dashed rgba(52,211,153,0.2);">🌌</div>
+                    <div>No active teams yet.<br><span style="font-size: 0.85rem; opacity: 0.7;">Start building your dream team by inviting matches!</span></div>
+                </div>
+            `;
             document.getElementById('teams3DCanvas').style.display = 'none';
         } else {
             activeList.innerHTML = myTeams.map(t => `
@@ -2447,6 +2615,78 @@
         }
         animate();
     }
+
+    // ── Swipe to Match Interaction ── //
+    function makeCardSwipable(cardId, index) {
+        const cardElem = document.getElementById(cardId);
+        if (!cardElem) return;
+
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let deltaX = 0;
+
+        cardElem.addEventListener('pointerdown', (e) => {
+            if (cardElem.classList.contains('error')) return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            cardElem.classList.add('swipe-active');
+            cardElem.setPointerCapture(e.pointerId);
+        });
+
+        cardElem.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            deltaX = e.clientX - startX;
+            if (Math.abs(deltaX) > 5) {
+                const rotateDeg = deltaX * 0.05;
+                
+                // Color mapping: Right = Green, Left = Red
+                if (deltaX > 20) {
+                    const intensity = Math.min((deltaX - 20) / 100, 0.5);
+                    cardElem.style.setProperty('--swipe-shadow', `0 20px 50px rgba(16, 185, 129, ${intensity})`);
+                    cardElem.style.setProperty('--swipe-border', `rgba(16, 185, 129, ${intensity + 0.3})`);
+                } else if (deltaX < -20) {
+                    const intensity = Math.min((Math.abs(deltaX) - 20) / 100, 0.5);
+                    cardElem.style.setProperty('--swipe-shadow', `0 20px 50px rgba(239, 68, 68, ${intensity})`);
+                    cardElem.style.setProperty('--swipe-border', `rgba(239, 68, 68, ${intensity + 0.3})`);
+                }
+
+                cardElem.style.setProperty('--swipe-transform', `translateX(${deltaX}px) translateY(-5px) rotate(${rotateDeg}deg)`);
+            }
+        });
+
+        cardElem.addEventListener('pointerup', async (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            cardElem.releasePointerCapture(e.pointerId);
+            cardElem.classList.remove('swipe-active');
+            
+            // Threshold for swipe action (100px)
+            if (deltaX > 100) {
+                activeCardIndex = index; 
+                inviteMode = 'explorer';
+                await acceptMatch(1); // Swipe Right
+            } else if (deltaX < -100) {
+                activeCardIndex = index;
+                inviteMode = 'explorer';
+                rejectMatch(-1); // Swipe Left
+            } else {
+                // Snap back
+                cardElem.style.transform = '';
+                cardElem.style.boxShadow = '';
+                cardElem.style.borderColor = '';
+                
+                // Pure Tap detection (<10px drag)
+                if (Math.abs(deltaX) < 10 && Math.abs(e.clientY - startY) < 10) {
+                     openExpandedCard(index);
+                }
+            }
+            deltaX = 0;
+        });
+    }
+
+    makeCardSwipable('card1', 0);
+    makeCardSwipable('card2', 1);
 
     </script>
 </body>

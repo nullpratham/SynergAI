@@ -3,6 +3,8 @@ import mysql.connector
 import time
 import sys
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
+from mysql.connector import pooling
 
 # ── AI Matching Engine (Custom Neural Network) ──
 # Ensure Backend/ directory is in path for imports
@@ -20,13 +22,20 @@ app.secret_key = "secretkey123"
 # ──────────────────────────────────────────
 # Database
 # ──────────────────────────────────────────
+
+# Create a connection pool to avoid "too many connections"
+db_pool = pooling.MySQLConnectionPool(
+    pool_name="synergai_pool",
+    pool_size=20,
+    pool_reset_session=True,
+    host="127.0.0.1",
+    user="root",
+    password="root@123",
+    database="synergai"
+)
+
 def get_db():
-    return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="root@123",
-        database="synergai"
-    )
+    return db_pool.get_connection()
 
 
 # ──────────────────────────────────────────
@@ -71,6 +80,7 @@ def save_account():
 
     email    = request.form["email"]
     password = request.form["password"]
+    hashed_password = generate_password_hash(password)
 
     db = get_db()
     cursor = db.cursor(buffered=True)
@@ -82,7 +92,7 @@ def save_account():
     values = (
         profile["name"], profile["university"], profile["skills"],
         profile["interests"], profile["role"], profile["availability"],
-        email, password
+        email, hashed_password
     )
     cursor.execute(query, values)
     db.commit()
@@ -100,15 +110,15 @@ def login():
     password = request.form["password"]
 
     db = get_db()
-    cursor = db.cursor(buffered=True)
-    query = "SELECT * FROM users WHERE email=%s AND password=%s"
-    cursor.execute(query, (email, password))
+    cursor = db.cursor(dictionary=True, buffered=True)
+    query = "SELECT * FROM users WHERE email=%s"
+    cursor.execute(query, (email,))
     user = cursor.fetchone()
     cursor.close()
     db.close()
 
-    if user:
-        session["user_id"] = user[0]
+    if user and check_password_hash(user["password"], password):
+        session["user_id"] = user["id"]
         return redirect(url_for("dashboard"))
     else:
         return render_template("login.html", error="Invalid email or password.")
@@ -152,6 +162,8 @@ def api_matches():
 
     if "user_id" not in session:
         return jsonify({"error": "Not logged in"}), 401
+        
+    hackathon_mode = request.args.get("hackathon", "false").lower() == "true"
 
     db = get_db()
     cursor = db.cursor(dictionary=True, buffered=True)
@@ -168,10 +180,10 @@ def api_matches():
     query = """
     SELECT u.* FROM users u
     WHERE u.id != %s
-    AND u.id NOT IN (
-        SELECT receiver_id FROM invites WHERE sender_id = %s
-        UNION
-        SELECT sender_id FROM invites WHERE receiver_id = %s
+    AND NOT EXISTS (
+        SELECT 1 FROM invites i 
+        WHERE (i.sender_id = %s AND i.receiver_id = u.id)
+           OR (i.receiver_id = %s AND i.sender_id = u.id)
     )
     """
     cursor.execute(query, (session["user_id"], session["user_id"], session["user_id"]))
@@ -188,7 +200,7 @@ def api_matches():
         })
 
     # ── Run neural AI matching ──
-    matches = get_ai_matches(current_user, other_users)
+    matches = get_ai_matches(current_user, other_users, hackathon_mode=hackathon_mode)
 
     # Small delay so frontend animation feels natural
     time.sleep(1.2)
