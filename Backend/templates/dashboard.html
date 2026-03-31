@@ -119,6 +119,33 @@
             animation-delay: -3s;
         }
 
+        .match-card.error {
+            border-color: rgba(239, 68, 68, 0.6);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), inset 0 0 15px rgba(239, 68, 68, 0.1);
+            animation: floatError 5s ease-in-out infinite;
+        }
+
+        @keyframes floatError {
+            0% { transform: translateY(0px) rotateZ(0deg); border-color: rgba(239, 68, 68, 0.4); }
+            50% { transform: translateY(-15px) rotateZ(1deg); border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 50px rgba(239, 68, 68, 0.4); }
+            100% { transform: translateY(0px) rotateZ(0deg); border-color: rgba(239, 68, 68, 0.4); }
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            color: #ef4444;
+            margin-bottom: 2rem;
+            display: block;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
         @keyframes float3dMatched {
             0% { transform: translateY(0px) rotateX(3deg) rotateY(-3deg); box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3), 0 0 15px rgba(52, 211, 153, 0.15); }
             50% { transform: translateY(-20px) rotateX(-3deg) rotateY(3deg); box-shadow: 0 35px 50px -15px rgba(0, 0, 0, 0.4), 0 0 25px rgba(52, 211, 153, 0.25); }
@@ -137,6 +164,19 @@
 
         .matched .match-score {
             color: #34d399;
+        }
+
+        /* ── Error Content Visibility ── */
+        .match-card .error-content { display: none; }
+        .match-card.error .error-content { display: block; }
+        
+        /* Hide normal content when error is active */
+        .match-card.error .scan-line,
+        .match-card.error .match-score,
+        .match-card.error h3:not(.error-title),
+        .match-card.error .role,
+        .match-card.error .skills-container {
+            display: none !important;
         }
 
         .match-card h3 {
@@ -432,6 +472,30 @@
             border-color: #f87171;
             color: #f87171;
             transform: rotate(90deg);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            padding: 1rem 1.2rem;
+            border-radius: 1rem;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background: rgba(248, 113, 113, 0.2);
+            border-color: #f87171;
+            transform: translateY(-2px);
         }
 
         .info-grid {
@@ -920,6 +984,10 @@
                 <button class="tab-btn" onclick="switchTab('activity')">
                     📊 Activity
                 </button>
+
+                <a href="/logout" class="logout-btn">
+                    🚪 Logout
+                </a>
             </div>
 
             <div class="modal-content">
@@ -1098,6 +1166,19 @@
                 <h3 id="name1">Stephen (Example)</h3>
                 <div class="role" id="role1">UI/UX Designer</div>
                 <div class="skills-container" id="skills1"></div>
+                
+                <!-- Error View -->
+                <div class="error-content" style="text-align: center; padding: 1rem 0;">
+                    <span class="error-icon">!</span>
+                    <h3 class="error-title">Out of Teammates!</h3>
+                    <p style="color: var(--text-muted); line-height: 1.6; margin-top: 1rem; font-size: 0.9rem;">
+                        The AI scanned the entire database but couldn't find any 
+                        <b>unmatched</b> teammates for you right now. 
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        Check back later as more students join SynergAI!
+                    </p>
+                </div>
             </div>
 
             <div class="match-card" id="card2" onclick="openExpandedCard(1)">
@@ -1106,6 +1187,11 @@
                 <h3 id="name2">Alex (Example)</h3>
                 <div class="role" id="role2">Backend Developer</div>
                 <div class="skills-container" id="skills2"></div>
+                
+                <!-- Error View (Secondary) -->
+                <div class="error-content" style="text-align: center; padding: 1.5rem 0;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">No more users in the matching pool.</p>
+                </div>
             </div>
         </div>
 
@@ -1151,15 +1237,22 @@
             
             // Set up matches dynamically from DB
             if (matchData.matches.length === 0) {
-                status.textContent = 'No more teammates found. Check back later!';
+                status.textContent = 'Searched everywhere... no compatible teammates yet.';
                 btn.classList.remove('loading');
-                btn.textContent = 'End of Deck';
+                btn.textContent = 'None Found';
+                
                 card1.classList.remove('scanning');
                 card2.classList.remove('scanning');
-                card1.style.display = 'none';
+                
+                card1.classList.add('error');
+                card1.style.display = 'block';
                 card2.style.display = 'none';
                 return;
             }
+
+            // Normal match cleanup
+            card1.classList.remove('error');
+            card2.classList.remove('error');
 
             // Assign real DB users to current matches and pool
             matchPool = [...matchData.matches];

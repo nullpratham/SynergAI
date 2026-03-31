@@ -23,16 +23,38 @@ from sklearn.preprocessing import StandardScaler
 # ──────────────────────────────────────────────
 
 SKILLS = [
-    "Angular", "C++", "CSS", "Data Science", "DevOps",
-    "Django", "Docker", "Express.js", "Figma", "Flask",
-    "Java", "JavaScript", "Machine Learning", "MongoDB", "MySQL",
-    "Node.js", "Python", "React", "SQL", "TypeScript"
+    # Languages
+    "Python", "JavaScript", "TypeScript", "Java", "Go", "Rust", "C++", "C#", "Ruby", "Swift", "Kotlin", "PHP", "SQL",
+    # Frontend
+    "React", "Angular", "Vue.js", "Next.js", "Svelte", "TailwindCSS", "Bootstrap", "HTML5", "CSS3",
+    # Backend
+    "Node.js", "Django", "Flask", "Express.js", "Spring Boot", "Gin", "ASP.NET", "FastAPI",
+    # Cloud & Infra
+    "AWS", "Azure", "GCP", "Terraform", "CloudFormation", "Serverless", "Docker", "Kubernetes", "Jenkins", "GitHub Actions",
+    # Data & AI
+    "PyTorch", "TensorFlow", "Scikit-learn", "Spark", "Kafka", "dbt", "Pandas", "NumPy", "OpenCV", "LangChain", "OpenAI API",
+    # Databases
+    "MySQL", "PostgreSQL", "MongoDB", "Redis", "Cassandra", "DynamoDB", "Elasticsearch",
+    # Mobile & UI
+    "React Native", "Flutter", "SwiftUI", "Jetpack Compose", "Figma", "Adobe XD"
 ]
 
 ROLES = [
-    "Backend Developer", "Data Scientist", "DevOps Engineer",
-    "Frontend Developer", "Full Stack Developer", "ML Engineer",
-    "Project Manager", "UI/UX Designer"
+    "AI & Machine Learning Engineer",
+    "DevOps / DevSecOps Engineer",
+    "Cloud Architect",
+    "Data Engineer",
+    "Data Scientist",
+    "Site Reliability Engineer (SRE)",
+    "Cybersecurity Engineer",
+    "Full-Stack Developer",
+    "Backend Developer",
+    "Frontend Developer",
+    "UI/UX Designer",
+    "Project Manager",
+    "Mobile App Developer",
+    "Blockchain Developer",
+    "QA Automation Engineer"
 ]
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "ai_models")
@@ -77,16 +99,7 @@ def encode_user(user_dict):
 
 
 def encode_pair(user_a, user_b):
-    """Encode a pair of users into a single feature vector for the model.
-    
-    Features include:
-    - User A's profile
-    - User B's profile  
-    - Skill overlap count
-    - Skill complement count (skills B has that A doesn't)
-    - Role match indicator
-    - Role complement indicator
-    """
+    """Encode a pair of users into a single feature vector for the model."""
     vec_a = encode_user(user_a)
     vec_b = encode_user(user_b)
 
@@ -107,7 +120,7 @@ def encode_pair(user_a, user_b):
         skill_complement,
         total_skills,
         same_role,
-        1.0 - same_role  # complement role flag
+        1.0 - same_role
     ])
 
     return np.concatenate([vec_a, vec_b, interaction])
@@ -121,27 +134,26 @@ def encode_pair(user_a, user_b):
 ROLE_COMPLEMENT_SCORE = {
     ("Backend Developer",   "Frontend Developer"):  0.95,
     ("Backend Developer",   "UI/UX Designer"):      0.85,
-    ("Backend Developer",   "DevOps Engineer"):     0.80,
-    ("Backend Developer",   "Project Manager"):     0.70,
-    ("Backend Developer",   "ML Engineer"):         0.75,
-    ("Backend Developer",   "Data Scientist"):      0.70,
-    ("Frontend Developer",  "UI/UX Designer"):      0.90,
-    ("Frontend Developer",  "DevOps Engineer"):     0.65,
-    ("Frontend Developer",  "Project Manager"):     0.70,
-    ("Frontend Developer",  "ML Engineer"):         0.60,
-    ("Full Stack Developer","UI/UX Designer"):      0.80,
-    ("Full Stack Developer","DevOps Engineer"):     0.85,
-    ("Full Stack Developer","Project Manager"):     0.75,
-    ("ML Engineer",         "Data Scientist"):      0.90,
-    ("ML Engineer",         "DevOps Engineer"):     0.80,
-    ("ML Engineer",         "Project Manager"):     0.65,
-    ("Data Scientist",      "DevOps Engineer"):     0.60,
-    ("Data Scientist",      "Project Manager"):     0.65,
-    ("DevOps Engineer",     "Project Manager"):     0.70,
+    ("Backend Developer",   "DevOps / DevSecOps Engineer"): 0.90,
+    ("Frontend Developer",  "UI/UX Designer"):      0.95,
+    ("AI & Machine Learning Engineer", "Data Engineer"): 0.95,
+    ("AI & Machine Learning Engineer", "Data Scientist"): 0.85,
+    ("AI & Machine Learning Engineer", "DevOps / DevSecOps Engineer"): 0.85,
+    ("Data Engineer",       "Data Scientist"):      0.90,
+    ("Cybersecurity Engineer", "DevOps / DevSecOps Engineer"): 0.90,
+    ("Full-Stack Developer","UI/UX Designer"):      0.85,
+    ("Mobile App Developer","UI/UX Designer"):      0.90,
+    ("Mobile App Developer","Backend Developer"):   0.85,
+    ("Project Manager",     "Full-Stack Developer"): 0.80,
+    ("Project Manager",     "Site Reliability Engineer (SRE)"): 0.75,
+    ("QA Automation Engineer", "Backend Developer"): 0.80,
+    ("QA Automation Engineer", "Frontend Developer"): 0.80,
+    ("Blockchain Developer", "Cybersecurity Engineer"): 0.85,
+    ("Cloud Architect",     "DevOps / DevSecOps Engineer"): 1.00,
 }
 
 # Same role = they compete, not complement
-SAME_ROLE_PENALTY = 0.30
+SAME_ROLE_PENALTY = 0.20
 
 
 def get_role_complement_score(role_a, role_b):
@@ -171,7 +183,7 @@ def get_role_complement_score(role_a, role_b):
 # Training Data Generator
 # ──────────────────────────────────────────────
 
-def generate_training_data(n_samples=5000):
+def generate_training_data(n_samples=150000):
     """Generate synthetic training pairs with compatibility labels.
     
     The labels encode our domain knowledge:
@@ -240,8 +252,8 @@ def generate_training_data(n_samples=5000):
 
 def train_model():
     """Train the matching neural network and save it to disk."""
-    print("🧠 Generating training data...")
-    X, y = generate_training_data(n_samples=8000)
+    print("🧠 Generating massive training data (150,000 samples)...")
+    X, y = generate_training_data(n_samples=150000)
 
     print(f"   → {X.shape[0]} training samples, {X.shape[1]} features each")
 
@@ -249,18 +261,18 @@ def train_model():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    print("🔧 Training neural network...")
+    print("🔧 Training deep neural network (512x256x128x64x32)...")
     model = MLPRegressor(
-        hidden_layer_sizes=(128, 64, 32),
+        hidden_layer_sizes=(512, 256, 128, 64, 32),
         activation="relu",
         solver="adam",
-        max_iter=500,
+        max_iter=300,
         learning_rate="adaptive",
         learning_rate_init=0.001,
         early_stopping=True,
-        validation_fraction=0.15,
+        validation_fraction=0.1,
         random_state=42,
-        verbose=False
+        verbose=True
     )
 
     model.fit(X_scaled, y)
@@ -343,19 +355,19 @@ if __name__ == "__main__":
     print("\n🧪 Quick test predictions:")
     test_cases = [
         (
-            {"skills": "Python, Flask, MySQL", "role": "Backend Developer"},
-            {"skills": "React, CSS, Figma", "role": "Frontend Developer"},
+            {"skills": "Python, FastAPI, PostgreSQL", "role": "Backend Developer"},
+            {"skills": "React, TailwindCSS, Figma", "role": "Frontend Developer"},
             "Backend + Frontend (should be HIGH)"
         ),
         (
-            {"skills": "Python, Flask, MySQL", "role": "Backend Developer"},
-            {"skills": "Python, Django, SQL", "role": "Backend Developer"},
-            "Backend + Backend (should be LOW)"
+            {"skills": "PyTorch, TensorFlow, Pandas", "role": "AI & Machine Learning Engineer"},
+            {"skills": "Docker, Kubernetes, AWS", "role": "DevOps / DevSecOps Engineer"},
+            "AI + DevOps (should be HIGH)"
         ),
         (
-            {"skills": "Python, Machine Learning, Data Science", "role": "ML Engineer"},
-            {"skills": "Docker, DevOps, MySQL", "role": "DevOps Engineer"},
-            "ML + DevOps (should be MEDIUM-HIGH)"
+            {"skills": "Python, SQL, Spark", "role": "Data Engineer"},
+            {"skills": "Scikit-learn, Pandas, NumPy", "role": "Data Scientist"},
+            "Data Eng + Data Sci (should be HIGH)"
         ),
     ]
 

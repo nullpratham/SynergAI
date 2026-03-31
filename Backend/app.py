@@ -110,6 +110,13 @@ def login():
         return render_template("login.html", error="Invalid email or password.")
 
 
+# ── Logout ────────────────────────────────
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("home"))
+
+
 # ── Dashboard ─────────────────────────────
 @app.route("/dashboard")
 def dashboard():
@@ -168,25 +175,12 @@ def api_matches():
     cursor.close()
     db.close()
 
-    # If no other users exist, return example fallback
+    # If no other users exist, return empty
     if not other_users:
-        time.sleep(1.5)
         return jsonify({
-            "fallback": True,
-            "matches": [
-                {
-                    "name": "Riya Gupta",
-                    "skills": "React, UI Design, Frontend",
-                    "score": 92,
-                    "role": "Frontend Developer"
-                },
-                {
-                    "name": "Arjun Mehta",
-                    "skills": "Python, Machine Learning, Data",
-                    "score": 85,
-                    "role": "ML Engineer"
-                }
-            ]
+            "fallback": False,
+            "matches": [],
+            "engine": "Neural Team Complementarity Model"
         })
 
     # ── Run neural AI matching ──
