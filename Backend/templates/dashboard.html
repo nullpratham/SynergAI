@@ -524,23 +524,44 @@
             font-weight: 600;
         }
 
+        /* ── Profile Button with Progress Border ── */
+        .btn-profile-wrap {
+            position: relative;
+            padding: 2px;
+            border-radius: 1rem;
+            background: conic-gradient(
+                #fbbf24 0%,
+                #fbbf24 var(--profile-pct, 0%),
+                rgba(255,255,255,0.08) var(--profile-pct, 0%),
+                rgba(255,255,255,0.08) 100%
+            );
+            transition: --profile-pct 0.6s ease;
+        }
+
         .btn-profile {
             padding: 0.8rem 1.5rem;
-            border-radius: 1rem;
-            background: rgba(255, 255, 255, 0.05);
+            border-radius: calc(1rem - 2px);
+            background: rgba(15, 18, 35, 0.95);
             color: white;
             text-decoration: none;
-            border: 1px solid var(--glass-border);
+            border: none;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            position: relative; /* For notification dot */
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-profile:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            background: rgba(25, 28, 50, 0.95);
+        }
+
+        .profile-pct-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            opacity: 0.5;
         }
 
         .notification-dot {
@@ -549,10 +570,10 @@
             right: -5px;
             width: 12px;
             height: 12px;
-            background: #fbbf24; /* Yellow */
+            background: #fbbf24;
             border-radius: 50%;
             border: 2px solid #0f172a;
-            display: none; /* Hidden by default */
+            display: none;
             animation: pulse-yellow 2s infinite;
             z-index: 10;
         }
@@ -561,6 +582,123 @@
             0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+
+        /* ── Warning Toast (bottom-center) ── */
+        .warn-toast {
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 15, 25, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-left: 4px solid #fbbf24;
+            color: #fef3c7;
+            padding: 0.9rem 1.5rem;
+            border-radius: 1rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            z-index: 4500;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 0 15px rgba(251,191,36,0.15);
+            transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+
+        .warn-toast.show {
+            bottom: 32px;
+        }
+
+        .warn-toast-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            animation: wobble 2s ease-in-out infinite;
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-12deg); }
+            30% { transform: rotate(10deg); }
+            45% { transform: rotate(-6deg); }
+            60% { transform: rotate(0deg); }
+        }
+
+        /* ── Editable Profile Fields ── */
+        .profile-edit-field {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.8rem;
+            padding: 0.7rem 1rem;
+            color: white;
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.3s, background 0.3s;
+            resize: vertical;
+        }
+
+        .profile-edit-field::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .profile-edit-field:focus {
+            border-color: rgba(99,102,241,0.5);
+            background: rgba(99,102,241,0.05);
+        }
+
+        .field-hint {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.25);
+            margin-top: 0.3rem;
+        }
+
+        .save-indicator {
+            font-size: 0.75rem;
+            color: #10b981;
+            opacity: 0;
+            transition: opacity 0.3s;
+            margin-left: 0.5rem;
+        }
+        .save-indicator.show { opacity: 1; }
+
+        .completeness-bar-wrap {
+            margin-bottom: 2rem;
+            padding: 1rem 1.2rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .completeness-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .completeness-bar-header span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .completeness-bar-track {
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .completeness-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: linear-gradient(90deg, #fbbf24, #10b981);
+            transition: width 0.6s ease;
+            width: 0%;
         }
 
         /* ── Expanded Card Overlay ── */
@@ -828,136 +966,240 @@
             box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
         }
 
-        /* ── Chat Overlay ── */
-        .chat-overlay {
+        /* ── Floating Chat Widget (bottom-right) ── */
+        .chat-widget {
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(20px);
-            z-index: 3500;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .chat-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .chat-box {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            width: 600px;
-            height: 70vh;
-            border-radius: 2rem;
+            bottom: 32px;
+            right: 32px;
+            width: 380px;
+            height: 520px;
             display: flex;
             flex-direction: column;
+            background: rgba(15, 18, 35, 0.92);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 1.8rem;
             overflow: hidden;
-            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6);
-            transform: scale(0.95) translateY(20px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.04);
+            z-index: 3500;
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .chat-overlay.active .chat-box {
-            transform: scale(1) translateY(0);
+        .chat-widget.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: all;
         }
 
         .chat-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--glass-border);
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(99, 102, 241, 0.08);
+            flex-shrink: 0;
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .chat-messages {
             flex: 1;
-            padding: 2rem;
+            padding: 1.2rem 1.2rem 0.5rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.7rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
         }
 
         .chat-message {
             max-width: 80%;
-            padding: 1rem 1.5rem;
-            border-radius: 1.5rem;
-            font-size: 0.95rem;
+            padding: 0.75rem 1.1rem;
+            border-radius: 1.2rem;
+            font-size: 0.9rem;
             line-height: 1.5;
+            word-break: break-word;
+            animation: msgPop 0.25s ease;
+        }
+
+        @keyframes msgPop {
+            from { opacity: 0; transform: scale(0.9) translateY(5px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .message-sent {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             align-self: flex-end;
-            border-bottom-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.3rem;
         }
 
         .message-received {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--glass-border);
-            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
             align-self: flex-start;
-            border-bottom-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.3rem;
         }
 
         .chat-input-area {
-            padding: 1.2rem 2rem;
-            border-top: 1px solid var(--glass-border);
-            background: rgba(255, 255, 255, 0.02);
+            padding: 0.9rem 1.2rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            background: rgba(0,0,0,0.15);
             display: flex;
-            gap: 1rem;
+            gap: 0.7rem;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-input {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 100px;
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.2rem;
             color: white;
             outline: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: border-color 0.3s;
         }
 
+        .chat-input::placeholder { color: rgba(255,255,255,0.3); }
+
         .chat-input:focus {
             border-color: var(--primary);
+            background: rgba(99,102,241,0.08);
         }
 
         .btn-send {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            width: 50px;
-            height: 50px;
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
         }
 
         .btn-send:hover {
-            background: var(--secondary);
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(99,102,241,0.6);
         }
+
+        /* ── Incoming Message Notification (top-right) ── */
+        .msg-popup {
+            position: fixed;
+            top: 80px;
+            right: -420px;
+            width: 340px;
+            background: rgba(15, 18, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            border-left: 4px solid #818cf8;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 20px rgba(99,102,241,0.2);
+            z-index: 5000;
+            cursor: pointer;
+            transition: right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .msg-popup.show {
+            right: 24px;
+        }
+
+        .msg-popup-avatar {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .msg-popup-body {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .msg-popup-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #e0e7ff;
+        }
+
+        .msg-popup-text {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .msg-popup-close {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+        .msg-popup-close:hover { color: #f87171; }
     </style>
+    <!-- Three.js for 3D Gravity Sphere -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
         <h2>SynergAI</h2>
         <div style="display: flex; gap: 1rem; align-items: center;">
-            <button class="btn-profile" onclick="toggleProfileModal(true)">
-                Profile
-                <div class="notification-dot" id="profileDot"></div>
-            </button>
+            <div class="btn-profile-wrap">
+                <button class="btn-profile" onclick="toggleTeamsModal(true)" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4);">
+                    💠 Teams
+                    <div class="notification-dot" id="teamsDot" style="background:#6366f1;"></div>
+                </button>
+            </div>
+            <div class="btn-profile-wrap" id="profileWrap">
+                <button class="btn-profile" onclick="toggleProfileModal(true)">
+                    Profile
+                    <span class="profile-pct-label" id="profilePctLabel"></span>
+                    <div class="notification-dot" id="profileDot"></div>
+                </button>
+            </div>
             <a href="/logout" style="background: rgba(248, 113, 113, 0.05); padding: 0.8rem 1.5rem; border-radius: 1rem; color: #f87171; text-decoration: none; border: 1px solid rgba(248, 113, 113, 0.2); font-weight: 600; font-size: 0.95rem; transition: all 0.3s;">Logout</a>
         </div>
     </nav>
@@ -994,6 +1236,18 @@
                 <!-- Info Tab -->
                 <div class="tab-pane active" id="tab-info">
                     <h2>Personal Info</h2>
+
+                    <!-- Completeness Bar -->
+                    <div class="completeness-bar-wrap">
+                        <div class="completeness-bar-header">
+                            <span>Profile Completeness</span>
+                            <span id="completenessLabel">0%</span>
+                        </div>
+                        <div class="completeness-bar-track">
+                            <div class="completeness-bar-fill" id="completenessBarFill"></div>
+                        </div>
+                    </div>
+
                     <div class="info-grid">
                         <div class="info-item">
                             <label>Full Name</label>
@@ -1007,10 +1261,36 @@
                             <label>Email Address</label>
                             <span>{{ user.email }}</span>
                         </div>
+
+                        <!-- Editable: Role -->
                         <div class="info-item" style="grid-column: span 2;">
-                            <label>Current Role</label>
-                            <span>{{ user.role or 'Student' }}</span>
+                            <label>Current Role <span class="save-indicator" id="saveRole">✓ saved</span></label>
+                            <input class="profile-edit-field" id="fieldRole" value="{{ user.role or '' }}" placeholder="e.g. Frontend Developer, ML Engineer..." onchange="saveProfileField('role', this.value, 'saveRole')">
+                            <div class="field-hint">What role are you looking to fill on a team?</div>
                         </div>
+
+                        <!-- Editable: Description/Bio -->
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Description / Bio <span class="save-indicator" id="saveDesc">✓ saved</span></label>
+                            <textarea class="profile-edit-field" id="fieldDescription" rows="3" placeholder="Tell potential teammates about yourself — your background, what you're passionate about, what kind of projects excite you..." onchange="saveProfileField('description', this.value, 'saveDesc')">{{ user.description or '' }}</textarea>
+                            <div class="field-hint">A good description dramatically improves match quality.</div>
+                        </div>
+
+                        <!-- Editable: Interests -->
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Interests <span class="save-indicator" id="saveInterests">✓ saved</span></label>
+                            <input class="profile-edit-field" id="fieldInterests" value="{{ user.interests or '' }}" placeholder="e.g. AI, Robotics, Web3, Climate Tech..." onchange="saveProfileField('interests', this.value, 'saveInterests')">
+                            <div class="field-hint">Comma-separated topics you're interested in.</div>
+                        </div>
+
+                        <!-- Editable: Availability -->
+                        <div class="info-item" style="grid-column: span 2;">
+                            <label>Availability <span class="save-indicator" id="saveAvail">✓ saved</span></label>
+                            <input class="profile-edit-field" id="fieldAvailability" value="{{ user.availability or '' }}" placeholder="e.g. 10-15 hrs/week, weekends only..." onchange="saveProfileField('availability', this.value, 'saveAvail')">
+                            <div class="field-hint">How much time can you commit per week?</div>
+                        </div>
+
+                        <!-- Read-only: Skills -->
                         <div class="info-item" style="grid-column: span 2;">
                             <label>Core Skills</label>
                             <div class="skills-container" style="margin-top: 0.5rem;">
@@ -1099,9 +1379,8 @@
                 <h2 id="expName">User Name</h2>
                 <div class="role" id="expRole" style="color: #818cf8; font-weight: 700; letter-spacing: 0.1rem;">ROLE NAME</div>
                 
-                <div class="bio">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                    <p style="margin-top: 1rem;">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <div class="bio" id="expBioContainer">
+                    <p id="expBio">Lorem ipsum dolor sit amet...</p>
                 </div>
 
                 <div class="info-grid" style="margin-top: 2rem;">
@@ -1128,29 +1407,106 @@
         </div>
     </div>
 
-    <!-- Chat Overlay -->
-    <div class="chat-overlay" id="chatOverlay">
-        <div class="chat-box">
-            <div class="chat-header">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div class="match-avatar" id="chatAvatar" style="width: 40px; height: 40px; font-size: 1rem; margin-bottom: 0;">?</div>
-                    <div>
-                        <h3 id="chatName" style="margin: 0; font-size: 1.2rem;">User Name</h3>
-                        <span style="font-size: 0.8rem; color: #10b981;">● Teammate</span>
-                    </div>
-                </div>
-                <button class="close-modal" style="position: static; font-size:1.5rem; width:35px; height:35px;" onclick="closeChat()">&times;</button>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages populate here -->
-            </div>
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" id="chatInputMessage" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button class="btn-send" onclick="sendChatMessage()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    <!-- Teams Modal Overlay -->
+    <div class="modal-overlay" id="teamsOverlay">
+        <div class="profile-modal" style="max-width: 900px;">
+            <button class="close-modal" onclick="toggleTeamsModal(false)">&times;</button>
+            
+            <div class="modal-sidebar">
+                <h3>Teams</h3>
+                <button class="tab-btn active" onclick="switchTeamsTab('active')">
+                    💠 Active Teams
+                </button>
+                <button class="tab-btn" onclick="switchTeamsTab('create')">
+                    ➕ Form Team
+                </button>
+                <button class="tab-btn" onclick="switchTeamsTab('invites')">
+                    📬 Team Invites <span id="teamInviteBadge" style="background:#6366f1; color:#fff; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px; display:none;">0</span>
                 </button>
             </div>
+
+            <div class="modal-content" style="overflow-y: auto; padding: 2rem 3rem;">
+                
+                <!-- Active Teams Tab -->
+                <div class="tab-pane active" id="tab-teams-active">
+                    <h2 style="margin-bottom:0.5rem;">Your Teams</h2>
+                    <p style="color:var(--text-muted); margin-bottom:1.5rem;">The synergy scale represented visually.</p>
+                    
+                    <div id="activeTeamsList" style="margin-bottom: 2rem;">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">No active teams. Form one!</div>
+                    </div>
+
+                    <!-- 3D Canvas Container -->
+                    <div id="teams3DCanvas" style="width:100%; height:400px; background:rgba(0,0,0,0.3); border-radius:1rem; border:1px solid rgba(255,255,255,0.05); overflow:hidden; position:relative;">
+                        <div id="renderSurface" style="width:100%; height:100%;"></div>
+                        <div id="teams3DTooltip" style="position:absolute; top:10px; left:10px; background:rgba(15,18,35,0.8); border:1px solid rgba(99,102,241,0.5); padding:8px 12px; border-radius:8px; font-size:0.8rem; pointer-events:none; opacity:0; transition:opacity 0.2s;">
+                            <div id="tooltipName" style="font-weight:700; color:#fff;"></div>
+                            <div id="tooltipRole" style="color:#818cf8; font-size:0.7rem;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Team Tab -->
+                <div class="tab-pane" id="tab-teams-create">
+                    <h2>Form a New Team</h2>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Start a team and optionally invite your existing connections.</p>
+                    
+                    <div class="info-item" style="margin-bottom:1.5rem;">
+                        <label>Team Name</label>
+                        <input class="profile-edit-field" id="newTeamName" placeholder="e.g. AI Hackathon Squad" style="margin-top:0.5rem;">
+                    </div>
+
+                    <button class="btn-accept" style="width:100%; margin-bottom: 2rem;" onclick="createNewTeam()">Create Team</button>
+
+                    <h4 style="margin-bottom: 1rem;">Invite Teammates</h4>
+                    <div id="eligibleTeammatesList">
+                        <div style="color:var(--text-muted); text-align:center;">No eligible teammates found. You need accepted connections first!</div>
+                    </div>
+                </div>
+
+                <!-- Invites Tab -->
+                <div class="tab-pane" id="tab-teams-invites">
+                    <h2>Team Invitations</h2>
+                    <p style="color:var(--text-muted); margin-bottom:1.5rem;">Join existing teams.</p>
+                    
+                    <div id="teamInvitesList">
+                        <div style="color:var(--text-muted); text-align:center;">No team invitations pending.</div>
+                    </div>
+                </div>
+
+            </div>
         </div>
+    </div>
+
+    <!-- Floating Chat Widget (bottom-right) -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="match-avatar" id="chatAvatar" style="width: 36px; height: 36px; font-size: 0.95rem; flex-shrink:0;">?</div>
+                <div>
+                    <div id="chatName" style="font-weight:700; font-size:1rem; margin:0;">User Name</div>
+                    <div style="font-size:0.75rem; color:#10b981;">&#9679; Teammate</div>
+                </div>
+            </div>
+            <button class="close-modal" style="position:static; width:32px; height:32px; font-size:1.1rem;" onclick="closeChat()">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInputMessage" placeholder="Message..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="btn-send" onclick="sendChatMessage()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Incoming Message Notification Popup (top-right) -->
+    <div class="msg-popup" id="msgPopup" onclick="handlePopupClick()">
+        <div class="msg-popup-avatar" id="msgPopupAvatar">?</div>
+        <div class="msg-popup-body">
+            <div class="msg-popup-name" id="msgPopupName">Someone</div>
+            <div class="msg-popup-text" id="msgPopupText">Sent you a message</div>
+        </div>
+        <button class="msg-popup-close" onclick="event.stopPropagation(); dismissPopup()">&#10005;</button>
     </div>
 
     <div class="dashboard-container">
@@ -1204,6 +1560,12 @@
         <div class="status-text" id="statusText"></div>
     </div>
 
+    <!-- Warning Toast (bottom center) -->
+    <div class="warn-toast" id="warnToast">
+        <span class="warn-toast-icon">⚠️</span>
+        <span id="warnToastText">We suggest adding a description for better future matching</span>
+    </div>
+
     <!-- Background Orbs -->
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
@@ -1219,6 +1581,12 @@
         const status = document.getElementById('statusText');
         const card1 = document.getElementById('card1');
         const card2 = document.getElementById('card2');
+
+        // ── Check for missing description ──
+        const descField = document.getElementById('fieldDescription');
+        if (!descField || !descField.value.trim()) {
+            showWarnToast('We suggest adding a description for better future matching');
+        }
 
         btn.classList.add('loading');
         btn.textContent = 'Matching...';
@@ -1532,21 +1900,31 @@
 
     // ── Chat Logic ── //
     let currentChatId = null;
+    let currentChatName = null;
     let chatInterval = null;
+    let lastSeenMessageIds = {};   // { teammateId: lastMessageId } — track per-conversation
+    let popupDismissTimeout = null;
+    let pendingPopupTeammateId = null;
+    let pendingPopupTeammateName = null;
 
     function openChat(teammateId, teammateName) {
         currentChatId = teammateId;
+        currentChatName = teammateName;
         document.getElementById('chatName').textContent = teammateName;
         document.getElementById('chatAvatar').textContent = teammateName.charAt(0);
-        document.getElementById('chatOverlay').classList.add('active');
+        document.getElementById('chatWidget').classList.add('active');
+        // Close popup if it was for this same person
+        if (pendingPopupTeammateId === teammateId) dismissPopup();
         fetchMessages();
-        chatInterval = setInterval(fetchMessages, 3000); // Poll for messages
+        if (chatInterval) clearInterval(chatInterval);
+        chatInterval = setInterval(fetchMessages, 3000);
     }
 
     function closeChat() {
-        document.getElementById('chatOverlay').classList.remove('active');
+        document.getElementById('chatWidget').classList.remove('active');
         currentChatId = null;
-        if(chatInterval) clearInterval(chatInterval);
+        currentChatName = null;
+        if (chatInterval) clearInterval(chatInterval);
     }
 
     async function fetchMessages() {
@@ -1554,14 +1932,15 @@
         try {
             const res = await fetch(`/api/messages/${currentChatId}`);
             const msgs = await res.json();
-            
+
             const cont = document.getElementById('chatMessages');
+            const wasAtBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
             cont.innerHTML = msgs.map(m => `
                 <div class="chat-message ${m.sender_id === currentUserId ? 'message-sent' : 'message-received'}">
                     ${m.text}
                 </div>
             `).join('');
-            cont.scrollTop = cont.scrollHeight;
+            if (wasAtBottom) cont.scrollTop = cont.scrollHeight;
         } catch(e) { console.error('Error fetching messages', e); }
     }
 
@@ -1578,9 +1957,87 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ receiver_id: currentChatId, text: text })
             });
-            fetchMessages(); // refresh
+            // Mark our own sends so we don't pop-notify ourselves
+            await fetchMessages();
+            // Update last seen for this chat
+            const res = await fetch(`/api/messages/${currentChatId}`);
+            const msgs = await res.json();
+            if (msgs.length) lastSeenMessageIds[currentChatId] = msgs[msgs.length - 1].id;
         } catch(e) { console.error('Failed to send msg', e); }
     }
+
+    // ── Background polling for new messages from ALL teammates (for popup notifications) ── //
+    async function pollAllTeammateMessages() {
+        if (!acceptedMatches || acceptedMatches.length === 0) return;
+
+        for (const teammate of acceptedMatches) {
+            // Skip the currently open chat (already shown inline)
+            if (teammate.id === currentChatId) {
+                try {
+                    const res = await fetch(`/api/messages/${teammate.id}`);
+                    const msgs = await res.json();
+                    if (msgs.length) lastSeenMessageIds[teammate.id] = msgs[msgs.length - 1].id;
+                } catch(e) {}
+                continue;
+            }
+
+            try {
+                const res = await fetch(`/api/messages/${teammate.id}`);
+                const msgs = await res.json();
+                if (!msgs.length) continue;
+
+                const latestMsg = msgs[msgs.length - 1];
+                const prevSeen = lastSeenMessageIds[teammate.id];
+
+                // Only notify if the latest message is FROM the teammate (not us)
+                // and it's newer than what we last saw
+                if (latestMsg.sender_id !== currentUserId) {
+                    if (prevSeen === undefined) {
+                        // First load  — just record seen, no popup
+                        lastSeenMessageIds[teammate.id] = latestMsg.id;
+                    } else if (latestMsg.id !== prevSeen) {
+                        // New message arrived — show popup
+                        lastSeenMessageIds[teammate.id] = latestMsg.id;
+                        showMsgPopup(teammate.id, teammate.name, latestMsg.text);
+                    }
+                } else {
+                    // Our own message — just update seen
+                    lastSeenMessageIds[teammate.id] = latestMsg.id;
+                }
+            } catch(e) {}
+        }
+    }
+
+    function showMsgPopup(teammateId, teammateName, text) {
+        pendingPopupTeammateId = teammateId;
+        pendingPopupTeammateName = teammateName;
+
+        document.getElementById('msgPopupAvatar').textContent = teammateName.charAt(0);
+        document.getElementById('msgPopupName').textContent = teammateName;
+        document.getElementById('msgPopupText').textContent = text;
+
+        const popup = document.getElementById('msgPopup');
+        popup.classList.add('show');
+
+        if (popupDismissTimeout) clearTimeout(popupDismissTimeout);
+        popupDismissTimeout = setTimeout(dismissPopup, 5000);
+    }
+
+    function dismissPopup() {
+        document.getElementById('msgPopup').classList.remove('show');
+        if (popupDismissTimeout) clearTimeout(popupDismissTimeout);
+        pendingPopupTeammateId = null;
+    }
+
+    function handlePopupClick() {
+        if (pendingPopupTeammateId) {
+            openChat(pendingPopupTeammateId, pendingPopupTeammateName);
+        }
+        dismissPopup();
+    }
+
+    // Poll ALL teammates for new messages every 4 seconds
+    setInterval(pollAllTeammateMessages, 4000);
 
     // Global variable tracking logged in user 
     const currentUserId = parseInt("{{ user.id }}", 10);
@@ -1615,6 +2072,382 @@
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    // ── Profile Completeness & Save ── //
+
+    async function saveProfileField(field, value, indicatorId) {
+        try {
+            await fetch('/api/update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [field]: value })
+            });
+            // Flash saved indicator
+            const el = document.getElementById(indicatorId);
+            if (el) {
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 2000);
+            }
+            updateProfileCompleteness();
+        } catch(e) { console.error('Failed to save field', e); }
+    }
+
+    function updateProfileCompleteness() {
+        // Fields we check: name, university, email, role, description, interests, availability, skills
+        const fields = [
+            { val: "{{ user.name or '' }}", weight: 1 },          // static
+            { val: "{{ user.university or '' }}", weight: 1 },    // static
+            { val: (document.getElementById('fieldRole')?.value || '').trim(), weight: 1 },
+            { val: (document.getElementById('fieldDescription')?.value || '').trim(), weight: 2 },  // double weight — most important
+            { val: (document.getElementById('fieldInterests')?.value || '').trim(), weight: 1 },
+            { val: (document.getElementById('fieldAvailability')?.value || '').trim(), weight: 1 },
+            { val: "{{ user.skills or '' }}", weight: 1 },        // static
+        ];
+
+        const totalWeight = fields.reduce((s, f) => s + f.weight, 0);
+        const filledWeight = fields.reduce((s, f) => s + (f.val ? f.weight : 0), 0);
+        const pct = Math.round((filledWeight / totalWeight) * 100);
+
+        // Update the completeness bar inside the modal
+        const barFill = document.getElementById('completenessBarFill');
+        const barLabel = document.getElementById('completenessLabel');
+        if (barFill) barFill.style.width = pct + '%';
+        if (barLabel) barLabel.textContent = pct + '%';
+
+        // Update the profile button border (conic gradient)
+        const wrap = document.getElementById('profileWrap');
+        if (wrap) {
+            // Interpolate color: yellow (0%) → green (100%)
+            const r = Math.round(251 - (251 - 16) * (pct / 100));
+            const g = Math.round(191 + (185 - 191) * (pct / 100));
+            const b = Math.round(36 + (129 - 36) * (pct / 100));
+            const col = `rgb(${r},${g},${b})`;
+
+            wrap.style.background = `conic-gradient(
+                ${col} 0%,
+                ${col} ${pct}%,
+                rgba(255,255,255,0.08) ${pct}%,
+                rgba(255,255,255,0.08) 100%
+            )`;
+        }
+
+        // Update the percentage label on the button
+        const pctLabel = document.getElementById('profilePctLabel');
+        if (pctLabel) pctLabel.textContent = pct + '%';
+    }
+
+    let warnToastTimeout = null;
+    function showWarnToast(msg) {
+        const toast = document.getElementById('warnToast');
+        const text = document.getElementById('warnToastText');
+        if (text) text.textContent = msg;
+        toast.classList.add('show');
+        if (warnToastTimeout) clearTimeout(warnToastTimeout);
+        warnToastTimeout = setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+
+    // Run completeness on page load
+    updateProfileCompleteness();
+
+    // ── TEAMS LOGIC & 3D VISUALIZATION ── //
+
+    let myTeams = [];
+    let myPendingTeams = [];
+    let threeScene, threeCamera, threeRenderer, teamSpheres = [], animationId;
+
+    function toggleTeamsModal(show) {
+        const overlay = document.getElementById('teamsOverlay');
+        if (show) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            loadTeamsData();
+            switchTeamsTab('active');
+        } else {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            stop3DAnimation();
+        }
+    }
+
+    function switchTeamsTab(tabId) {
+        document.querySelectorAll('#teamsOverlay .tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (event) event.currentTarget.classList.add('active');
+        else document.querySelector(`#teamsOverlay .tab-btn[onclick="switchTeamsTab('${tabId}')"]`).classList.add('active');
+
+        document.querySelectorAll('#teamsOverlay .tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById('tab-teams-' + tabId).classList.add('active');
+
+        if (tabId === 'active') {
+            setTimeout(() => {
+                if (myTeams.length > 0) initTeamVisualizer(myTeams[0].members);
+            }, 100);
+        } else {
+            stop3DAnimation();
+        }
+    }
+
+    async function loadTeamsData() {
+        try {
+            const res = await fetch('/api/teams/my');
+            const data = await res.json();
+            myTeams = data.teams;
+            myPendingTeams = data.pending;
+            
+            updateTeamsUI();
+        } catch(e) { console.error('Failed fetching teams', e); }
+    }
+
+    function updateTeamsUI() {
+        // Active Teams
+        const activeList = document.getElementById('activeTeamsList');
+        if (myTeams.length === 0) {
+            activeList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No active teams. Form one!</div>';
+            document.getElementById('teams3DCanvas').style.display = 'none';
+        } else {
+            activeList.innerHTML = myTeams.map(t => `
+                <div style="padding:1rem; border:1px solid rgba(99,102,241,0.3); border-radius:1rem; background:rgba(99,102,241,0.05); margin-bottom:1rem; cursor:pointer;" onclick="initTeamVisualizer(${JSON.stringify(t.members).replace(/"/g, '&quot;')})">
+                    <h3 style="color:#818cf8; margin:0 0 0.5rem 0;">${t.name}</h3>
+                    <div style="font-size:0.85rem; color:var(--text-muted);">Members: ${t.members.length}</div>
+                </div>
+            `).join('');
+            document.getElementById('teams3DCanvas').style.display = 'block';
+            initTeamVisualizer(myTeams[0].members);
+        }
+
+        // Form Team / Eligible members
+        const eligibleList = document.getElementById('eligibleTeammatesList');
+        if (acceptedMatches.length === 0) {
+             eligibleList.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No eligible teammates found. You need accepted connections first!</div>';
+        } else {
+             eligibleList.innerHTML = acceptedMatches.map(m => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem; background:rgba(255,255,255,0.03); border-radius:0.8rem; margin-bottom:0.5rem;">
+                    <div>
+                        <div style="font-weight:700;">${m.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">${m.role}</div>
+                    </div>
+                    <button class="btn-accept" style="padding:0.4rem 1rem; font-size:0.8rem;" onclick="inviteUserToTeam(${m.id})">Invite</button>
+                </div>
+             `).join('');
+        }
+
+        // Team Invites
+        const invitesList = document.getElementById('teamInvitesList');
+        const badge = document.getElementById('teamInviteBadge');
+        if (myPendingTeams.length === 0) {
+            invitesList.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No team invitations pending.</div>';
+            badge.style.display = 'none';
+        } else {
+            badge.style.display = 'inline-block';
+            badge.textContent = myPendingTeams.length;
+            invitesList.innerHTML = myPendingTeams.map(t => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem; background:rgba(255,255,255,0.03); border-radius:1rem; margin-bottom:1rem; border:1px solid rgba(251,191,36,0.3);">
+                    <div>
+                        <h3 style="margin:0 0 0.2rem 0;">${t.name}</h3>
+                        <div style="font-size:0.8rem; color:#fbbf24;">Invited to join</div>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                         <button class="btn-reject" onclick="respondToTeamInvite(${t.id}, 'rejected')">Decline</button>
+                         <button class="btn-accept" onclick="respondToTeamInvite(${t.id}, 'accepted')">Accept</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function createNewTeam() {
+        const nameInput = document.getElementById('newTeamName');
+        const name = nameInput.value.trim();
+        if (!name) return alert('Enter a team name');
+        try {
+            const res = await fetch('/api/teams/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name})
+            });
+            nameInput.value = '';
+            loadTeamsData();
+            switchTeamsTab('active');
+        } catch(e) { console.error('Error creating team', e); }
+    }
+
+    async function inviteUserToTeam(userId) {
+        if (myTeams.length === 0) return alert('You must create an active team first!');
+        const teamId = myTeams[0].id; // Simple approach: invite to first team
+        try {
+            await fetch('/api/teams/invite', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({team_id: teamId, receiver_id: userId})
+            });
+            alert('Invite sent!');
+        } catch(e) { console.error('Error inviting', e); }
+    }
+
+    async function respondToTeamInvite(teamId, status) {
+        try {
+            await fetch('/api/teams/respond', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({team_id: teamId, status})
+            });
+            loadTeamsData();
+        } catch(e) { console.error('Error responding', e); }
+    }
+
+    // --- 3D Gravity Sphere (Three.js) --- //
+
+    function stop3DAnimation() {
+        if (animationId) cancelAnimationFrame(animationId);
+        const container = document.getElementById('renderSurface');
+        if (container) container.innerHTML = '';
+        threeScene = null;
+        teamSpheres = [];
+    }
+
+    function initTeamVisualizer(members) {
+        stop3DAnimation();
+        if (!window.THREE) return; // Defensive check for library
+        
+        const container = document.getElementById('renderSurface');
+        if (!container || container.clientWidth === 0) return;
+
+        // Scene setup
+        threeScene = new THREE.Scene();
+        threeCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        threeRenderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(threeRenderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        threeScene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0x818cf8, 2, 50);
+        pointLight.position.set(5, 5, 5);
+        threeScene.add(pointLight);
+
+        // Central Core
+        const coreGeo = new THREE.SphereGeometry(1.2, 32, 32);
+        const coreMat = new THREE.MeshPhongMaterial({ 
+            color: 0x6366f1, 
+            emissive: 0x4338ca, 
+            transparent: true, 
+            opacity: 0.8,
+            wireframe: true
+        });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        threeScene.add(coreMesh);
+
+        // Members
+        const numMembers = members.length;
+        teamSpheres = [];
+        const colors = [0x10b981, 0xfbbf24, 0xf87171, 0x38bdf8, 0xa78bfa];
+
+        members.forEach((m, idx) => {
+            const geo = new THREE.SphereGeometry(0.5, 32, 32);
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: colors[idx % colors.length],
+                emissive: colors[idx % colors.length],
+                emissiveIntensity: 0.2
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            // Random initial orbit positions
+            mesh.position.set(
+                (Math.random() - 0.5) * 8,
+                (Math.random() - 0.5) * 8,
+                (Math.random() - 0.5) * 8
+            );
+            
+            // Store physics metadata
+            mesh.userData = {
+                memberInfo: m,
+                velocity: new THREE.Vector3(Math.random()*0.05, Math.random()*0.05, Math.random()*0.05),
+                baseDistance: 3 + (idx * 0.5) // Ideal orbit radius
+            };
+            
+            threeScene.add(mesh);
+            teamSpheres.push(mesh);
+        });
+
+        threeCamera.position.z = 10;
+
+        // Interaction setup
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, threeCamera);
+            const intersects = raycaster.intersectObjects(teamSpheres);
+            
+            const tooltip = document.getElementById('teams3DTooltip');
+            if (intersects.length > 0) {
+                const info = intersects[0].object.userData.memberInfo;
+                document.getElementById('tooltipName').textContent = info.name;
+                document.getElementById('tooltipRole').textContent = info.role || 'Teammate';
+                tooltip.style.left = (e.clientX - rect.left + 15) + 'px';
+                tooltip.style.top = (e.clientY - rect.top + 15) + 'px';
+                tooltip.style.opacity = 1;
+                document.body.style.cursor = 'pointer';
+            } else {
+                tooltip.style.opacity = 0;
+                document.body.style.cursor = 'default';
+            }
+        });
+
+        // Animation Loop
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            
+            // Rotate core
+            coreMesh.rotation.x += 0.005;
+            coreMesh.rotation.y += 0.01;
+
+            // Gravity Physics for members
+            teamSpheres.forEach(mesh => {
+                const data = mesh.userData;
+                const distToCore = mesh.position.length();
+                
+                // Pull towards center if too far, push if too close
+                const pullForce = (data.baseDistance - distToCore) * 0.005;
+                const currentDir = mesh.position.clone().normalize();
+                
+                mesh.position.add(currentDir.multiplyScalar(pullForce));
+                
+                // Orbital velocity
+                mesh.position.x += data.velocity.x;
+                mesh.position.y += data.velocity.y;
+                mesh.position.z += data.velocity.z;
+
+                // Simple bound checking to keep them circling
+                if(mesh.position.length() > data.baseDistance + 1) {
+                   data.velocity.multiplyScalar(0.95); // Drag
+                }
+                
+                // Deflect off each other
+                teamSpheres.forEach(otherMesh => {
+                    if (mesh !== otherMesh) {
+                        const distToOther = mesh.position.distanceTo(otherMesh.position);
+                        if (distToOther < 1.5) {
+                            const fleeDir = mesh.position.clone().sub(otherMesh.position).normalize();
+                            mesh.position.add(fleeDir.multiplyScalar(0.02));
+                        }
+                    }
+                });
+
+                // Gently rotate velocities to create orbits
+                data.velocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.01);
+                data.velocity.applyAxisAngle(new THREE.Vector3(1, 0, 0), 0.005);
+            });
+
+            threeRenderer.render(threeScene, threeCamera);
+        }
+        animate();
+    }
+
     </script>
 </body>
 </html>

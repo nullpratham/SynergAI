@@ -22,7 +22,7 @@ app.secret_key = "secretkey123"
 # ──────────────────────────────────────────
 def get_db():
     return mysql.connector.connect(
-        host="localhost",
+        host="127.0.0.1",
         user="root",
         password="root@123",
         database="synergai"
@@ -32,6 +32,10 @@ def get_db():
 # ──────────────────────────────────────────
 # Routes
 # ──────────────────────────────────────────
+
+@app.route("/health")
+def health():
+    return "OK"
 
 @app.route("/")
 def home():
@@ -304,6 +308,102 @@ def api_respond_invite():
     
     return jsonify({"success": True})
 
+# ── API: Teams ────────────────────────────
+
+@app.route("/api/teams/create", methods=["POST"])
+def api_teams_create():
+    if "user_id" not in session: return jsonify({"error": "Not logged in"}), 401
+    uid = session["user_id"]
+    data = request.get_json()
+    name = data.get("name")
+    
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO teams (name, created_by) VALUES (%s, %s)", (name, uid))
+    team_id = cursor.lastrowid
+    cursor.execute("INSERT INTO team_members (team_id, user_id, status) VALUES (%s, %s, 'accepted')", (team_id, uid))
+    db.commit()
+    cursor.close()
+    db.close()
+    return jsonify({"success": True, "team_id": team_id})
+
+@app.route("/api/teams/invite", methods=["POST"])
+def api_teams_invite():
+    if "user_id" not in session: return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json()
+    team_id = data.get("team_id")
+    receiver_id = data.get("receiver_id")
+    
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("INSERT INTO team_members (team_id, user_id, status) VALUES (%s, %s, 'pending')", (team_id, receiver_id))
+        db.commit()
+    except:
+        pass # Ignore if duplicate
+    cursor.close()
+    db.close()
+    return jsonify({"success": True})
+
+@app.route("/api/teams/respond", methods=["POST"])
+def api_teams_respond():
+    if "user_id" not in session: return jsonify({"error": "Not logged in"}), 401
+    uid = session["user_id"]
+    data = request.get_json()
+    team_id = data.get("team_id")
+    status = data.get("status") # 'accepted' or 'rejected'
+    
+    db = get_db()
+    cursor = db.cursor()
+    if status == 'rejected':
+        cursor.execute("DELETE FROM team_members WHERE team_id = %s AND user_id = %s", (team_id, uid))
+    else:
+        cursor.execute("UPDATE team_members SET status = %s WHERE team_id = %s AND user_id = %s", (status, team_id, uid))
+    db.commit()
+    cursor.close()
+    db.close()
+    return jsonify({"success": True})
+
+@app.route("/api/teams/my")
+def api_teams_my():
+    if "user_id" not in session: return jsonify({"error": "Not logged in"}), 401
+    uid = session["user_id"]
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT t.* FROM teams t
+        JOIN team_members tm ON t.id = tm.team_id
+        WHERE tm.user_id = %s AND tm.status = 'accepted'
+    """, (uid,))
+    my_teams = cursor.fetchall()
+    
+    for team in my_teams:
+        cursor.execute("""
+            SELECT u.id, u.name, u.role, u.skills, tm.status 
+            FROM users u
+            JOIN team_members tm ON u.id = tm.user_id
+            WHERE tm.team_id = %s
+        """, (team["id"],))
+        team["members"] = cursor.fetchall()
+        
+    cursor.execute("""
+        SELECT t.* FROM teams t
+        JOIN team_members tm ON t.id = tm.team_id
+        WHERE tm.user_id = %s AND tm.status = 'pending'
+    """, (uid,))
+    pending_teams = cursor.fetchall()
+    
+    cursor.close()
+    db.close()
+    
+    return jsonify({
+        "teams": my_teams,
+        "pending": pending_teams
+    })
+
+
 @app.route("/api/messages/<int:teammate_id>")
 def api_get_messages(teammate_id):
     if "user_id" not in session: return jsonify({"error": "Not logged in"}), 401
@@ -344,6 +444,44 @@ def api_send_message():
     
     return jsonify({"success": True})
 
+
+# ── API: Update Profile Fields ───────────
+@app.route("/api/update_profile", methods=["POST"])
+def api_update_profile():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    uid = session["user_id"]
+
+    # Only allow updating safe fields
+    allowed = {"description", "interests", "availability", "role"}
+    updates = []
+    values = []
+    for field in allowed:
+        if field in data:
+            updates.append(f"{field} = %s")
+            values.append(data[field])
+
+    if not updates:
+        return jsonify({"error": "Nothing to update"}), 400
+
+    values.append(uid)
+
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        f"UPDATE users SET {', '.join(updates)} WHERE id = %s",
+        tuple(values)
+    )
+    db.commit()
+    cursor.close()
+    db.close()
+
+    return jsonify({"success": True})
+
+
 # ──────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="127.0.0.1", port=5000)
+
